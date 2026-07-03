@@ -15,7 +15,7 @@ services:
       # --- guardrail configuration ---
       - RAGAS_PASS_THRESHOLD=${RAGAS_PASS_THRESHOLD:-0.7}
       - RAGAS_MAX_RETRIES=${RAGAS_MAX_RETRIES:-2}
-      - RAGAS_ON_MISSING_CONTEXT=${RAGAS_ON_MISSING_CONTEXT:-block}
+      - RAGAS_ON_MISSING_CONTEXT=${RAGAS_ON_MISSING_CONTEXT:-prompt}
       - RAGAS_ON_SCORER_ERROR=${RAGAS_ON_SCORER_ERROR:-block}
       - RAGAS_SCORING_TIMEOUT_S=${RAGAS_SCORING_TIMEOUT_S:-60}
       # --- judge endpoint (defaults to the self-hosted vLLM service below;

@@ -92,6 +92,48 @@ def extract_question(data: dict) -> str:
     return ""
 
 
+def _message_text(content) -> str:
+    """Best-effort plain text from a message's content (handles the
+    multimodal list-of-parts format)."""
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        parts = [
+            p.get("text") for p in content
+            if isinstance(p, dict) and isinstance(p.get("text"), str)
+        ]
+        return "\n".join(p for p in parts if p)
+    return ""
+
+
+def prompt_grounding_context(messages: list):
+    """Fallback grounding source when no explicit guardrail_context is sent:
+    the entire conversation the model was shown, role-labelled.
+
+    This makes the guardrail fully transparent to un-integrated applications.
+    The guarantee it provides is deliberately weaker than the metadata
+    contract: it verifies the model invented nothing beyond what it was told
+    (hallucination), but it cannot detect a falsehood the user themselves
+    asserted, since that falsehood is part of the conversation. Apps that
+    need the stronger retrieved-documents-only guarantee send
+    metadata["guardrail_context"].
+
+    Assistant turns are excluded: if the model hallucinated earlier in the
+    conversation, its own prior output must not become "ground truth" that
+    lets it repeat the hallucination with a passing score. Legitimately
+    grounded prior answers remain verifiable from the same non-assistant
+    content they were grounded in.
+    """
+    lines = []
+    for m in messages or []:
+        if not isinstance(m, dict) or m.get("role") == "assistant":
+            continue
+        text = _message_text(m.get("content")).strip()
+        if text:
+            lines.append(f"{m.get('role', 'unknown')}: {text}")
+    return ["\n\n".join(lines)] if lines else None
+
+
 def is_internal_call(data: dict) -> bool:
     """True for the guardrail's own regeneration calls, which must never be
     re-scored (prevents recursive self-triggering)."""

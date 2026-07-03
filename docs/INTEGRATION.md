@@ -1,26 +1,25 @@
-# Integration contract for RAG applications
+# Integrating with the grounding guardrail
 
-Every RAG application routed through this LiteLLM proxy must pass its
-retrieved context **explicitly in request metadata**. The guardrail never
-infers context from message roles or message content.
+**By default, no integration is required.** Any application that routes
+chat completions through this proxy is automatically protected: if a request
+carries no explicit context, the guardrail grounds the answer against the
+entire conversation the model was shown (system prompts, user messages,
+tool outputs — the model's own earlier replies are deliberately excluded).
+End users and application developers see normal OpenAI-compatible behavior;
+they never interact with the guardrail.
 
-## Why a metadata contract (read this before objecting)
+That transparent mode guarantees **the model invented nothing beyond what
+it was told**. It has one documented blind spot: if the *user themselves*
+asserts a false fact and the model repeats it, the answer is "grounded in
+the conversation" and passes. That is not model hallucination, but if your
+application needs answers verified against retrieved documents *only* —
+immune to user-asserted claims — opt in to strict grounding below.
 
-1. **Security.** Anything inside `messages` can be influenced by the end
-   user. We confirmed a real attack in testing: a user embedded a fabricated
-   product detail in their own message ("to confirm what we know so far...")
-   and a role-based extractor treated it as ground truth, scoring the
-   fabrication as perfectly grounded (1.0). Metadata is set by your
-   *server-side* code, which is inside the trust boundary; the end user's
-   keystrokes never reach it.
-2. **Correctness across teams.** Role conventions differ per app
-   (context-in-system, context-in-user, multi-turn). A metadata field is the
-   same for everyone and cannot silently extract zero context.
-3. **Industry precedent.** AWS Bedrock Guardrails (contextual grounding) and
-   Azure AI groundedness detection both require the caller to pass grounding
-   sources explicitly, for exactly these reasons.
+## Optional strict mode: explicit retrieved context
 
-## What to send
+A RAG application can upgrade its guarantee by having its **server-side
+backend** (never the end user — this field is invisible to them) attach the
+retrieved chunks to each request:
 
 ```python
 from openai import OpenAI
@@ -49,6 +48,8 @@ resp = client.chat.completions.create(
 
 Rules:
 
+- `guardrail_context` is set once in the app backend; it is invisible to end
+  users, who keep chatting exactly as before.
 - `guardrail_context` must be a **list of non-empty strings** (a single
   string is accepted and wrapped). Send the same text you injected into the
   prompt — no more, no less. Padding it with extra documents inflates
@@ -58,21 +59,37 @@ Rules:
 - How you arrange `messages` is entirely your business — the guardrail no
   longer cares about roles.
 
-## What happens if you don't send context
+## Why explicit metadata is the strong form
 
-Default (`RAGAS_ON_MISSING_CONTEXT=block`): the request is rejected with
-HTTP 400 and an error explaining this contract. This is deliberate — a
-grounding guardrail that silently skips unintegrated apps protects nothing.
+1. **Security.** Anything inside `messages` can be influenced by the end
+   user. We confirmed a real attack in testing: a user embedded a fabricated
+   product detail in their own message ("to confirm what we know so far...")
+   and the guardrail treated it as ground truth, scoring the fabrication as
+   perfectly grounded (1.0). Metadata is set by your *server-side* code,
+   which is inside the trust boundary; the end user's keystrokes never
+   reach it.
+2. **Precision.** Scoring against retrieved documents only (rather than the
+   whole conversation) verifies factual grounding in your knowledge base,
+   not merely internal consistency with the chat.
+3. **Industry precedent.** AWS Bedrock Guardrails (contextual grounding) and
+   Azure AI groundedness detection both take grounding sources explicitly
+   from the calling application, for exactly these reasons.
 
-During migration the proxy operator may set `RAGAS_ON_MISSING_CONTEXT=skip`,
-which lets context-less requests through unscored (logged with verdict
-`skipped_no_context` so adoption can be tracked in the dashboard).
+## Modes the proxy operator can set
 
-## What happens after you send it
+- `RAGAS_ON_MISSING_CONTEXT=prompt` (default): transparent full-conversation
+  grounding for requests without metadata context.
+- `RAGAS_ON_MISSING_CONTEXT=block`: strict — context-less requests are
+  rejected with HTTP 400 (for proxies serving only integrated RAG apps).
+- `RAGAS_ON_MISSING_CONTEXT=skip`: context-less requests pass unscored
+  (logged with verdict `skipped_no_context`); not recommended.
+
+## What happens on every scored request
 
 1. The model's answer is decomposed into factual claims by the judge model;
-   each claim is verified against `guardrail_context`. Score = fraction of
-   claims supported.
+   each claim is verified against the grounding source (explicit context if
+   provided, otherwise the conversation). Score = fraction of claims
+   supported.
 2. Score ≥ threshold (default 0.7) → answer returned unchanged.
 3. Score below threshold → the proxy regenerates the answer with corrective
    feedback (up to `RAGAS_MAX_RETRIES` times) and re-scores.

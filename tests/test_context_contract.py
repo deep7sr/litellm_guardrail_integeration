@@ -10,6 +10,7 @@ from context_contract import (  # noqa: E402
     extract_context,
     extract_question,
     is_internal_call,
+    prompt_grounding_context,
 )
 
 
@@ -98,6 +99,44 @@ def test_question_skips_non_string_content():
 def test_question_empty_when_nothing_available():
     assert extract_question({"messages": []}) == ""
     assert extract_question({}) == ""
+
+
+# ---- prompt_grounding_context (transparent fallback mode) ------------------
+
+def test_prompt_grounding_includes_system_and_user():
+    ctx = prompt_grounding_context([
+        {"role": "system", "content": "The X100 battery lasts 10 hours."},
+        {"role": "user", "content": "How long does the battery last?"},
+    ])
+    assert ctx is not None and len(ctx) == 1
+    assert "battery lasts 10 hours" in ctx[0]
+    assert "How long does the battery last?" in ctx[0]
+
+
+def test_prompt_grounding_excludes_assistant_turns():
+    # The model's own earlier output must never become ground truth.
+    ctx = prompt_grounding_context([
+        {"role": "user", "content": "question"},
+        {"role": "assistant", "content": "the moon is made of cheese"},
+        {"role": "user", "content": "restate that"},
+    ])
+    assert "cheese" not in ctx[0]
+
+
+def test_prompt_grounding_handles_multimodal_content():
+    ctx = prompt_grounding_context([
+        {"role": "user", "content": [
+            {"type": "text", "text": "what is this?"},
+            {"type": "image_url", "image_url": {"url": "x"}},
+        ]},
+    ])
+    assert ctx is not None and "what is this?" in ctx[0]
+
+
+def test_prompt_grounding_empty_conversation_returns_none():
+    assert prompt_grounding_context([]) is None
+    assert prompt_grounding_context([{"role": "assistant", "content": "hi"}]) is None
+    assert prompt_grounding_context([{"role": "user", "content": "   "}]) is None
 
 
 # ---- is_internal_call ------------------------------------------------------

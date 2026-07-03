@@ -42,22 +42,31 @@ making the guardrail score everything as ungrounded. Any role heuristic
 also inherits a subtler flaw: the system prompt's *instructions* ("answer
 politely...") get scored as if they were evidence.
 
-**Decision.** Context is now only accepted from
-`metadata["guardrail_context"]` (list of strings), set by the RAG
-application's server-side code — the same pattern AWS Bedrock and Azure use
-(explicit grounding sources). The end user cannot reach metadata, so the
-injection class is closed by construction, and there is no cross-team role
-convention to enforce. Yes, this is an integration requirement for every
-consuming app — that was the option the brief hoped to avoid, but it is the
-only option that is simultaneously correct and secure. A convention you
-"avoid requiring" is still a requirement; it's just an undocumented,
-unenforced one that fails silently instead of failing with a clear 400.
+**Decision: a two-tier design.** Role-based inference is gone entirely;
+there is no cross-team message-format convention to enforce.
 
-Missing context is **fail-closed by default** (HTTP 400 with a message
-pointing to `docs/INTEGRATION.md`); `RAGAS_ON_MISSING_CONTEXT=skip` exists
-for migration, and skipped requests are logged so adoption is measurable.
-Malformed context (wrong type, empty strings) is treated as missing, not
-scored against garbage. See `context_contract.py` and its unit tests.
+- **Transparent tier (default, `RAGAS_ON_MISSING_CONTEXT=prompt`).** When a
+  request carries no explicit context, the grounding source is the full
+  conversation the model was shown, *excluding the model's own earlier
+  replies* (so a turn-3 hallucination can't become turn-5 "ground truth").
+  This requires zero changes from any application or end user — the proxy
+  is invisible middleware — and it verifies the core guarantee: the model
+  invented nothing beyond what it was told. Its documented blind spot: a
+  falsehood asserted by the user is part of the conversation, so the model
+  repeating it passes. That is user-supplied misinformation, not model
+  hallucination, and no middleware can distinguish truth from user claims
+  without being told what the trusted documents are.
+- **Strict tier (opt-in per request).** An application's server-side backend
+  may attach `metadata["guardrail_context"]` (list of retrieved chunks; the
+  end user never sees or touches this field). The guardrail then verifies
+  against those documents only — the same explicit-grounding-source pattern
+  AWS Bedrock and Azure use — which closes the user-asserted-falsehood hole
+  for apps that need it. A `block` mode exists for proxies that serve only
+  integrated RAG apps and want the contract enforced with HTTP 400.
+
+Malformed explicit context (wrong type, empty strings) is treated as
+missing, not scored against garbage. See `context_contract.py` and its unit
+tests.
 
 ## Finding 2 — Question extraction (Open Problem #2)
 

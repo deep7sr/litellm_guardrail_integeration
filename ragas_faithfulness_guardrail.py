@@ -43,6 +43,7 @@ from context_contract import (
     extract_context,
     extract_question,
     is_internal_call,
+    prompt_grounding_context,
 )
 
 logger = logging.getLogger("ragas_faithfulness_guardrail")
@@ -57,11 +58,14 @@ MAX_RETRIES = int(os.environ.get("RAGAS_MAX_RETRIES", "2"))
 SCORING_TIMEOUT_S = float(os.environ.get("RAGAS_SCORING_TIMEOUT_S", "60"))
 MAX_CONCURRENT_SCORING = int(os.environ.get("RAGAS_MAX_CONCURRENT_SCORING", "8"))
 
-# "block" (reject the request, HTTP 400) or "skip" (let the answer through
-# unscored, logged as skipped). "block" is the production setting: it makes
-# the integration contract structurally enforced. Use "skip" only during
-# migration while apps adopt the metadata contract.
-ON_MISSING_CONTEXT = os.environ.get("RAGAS_ON_MISSING_CONTEXT", "block").lower()
+# What to do when a request carries no metadata["guardrail_context"]:
+#   "prompt" (default) - ground the answer against the full conversation the
+#             model was shown. Fully transparent to un-integrated apps:
+#             catches model fabrication, but cannot catch falsehoods the
+#             user themselves asserted (those are part of the conversation).
+#   "block"  - reject with HTTP 400; strict contract enforcement.
+#   "skip"   - let the answer through unscored (logged); migration use only.
+ON_MISSING_CONTEXT = os.environ.get("RAGAS_ON_MISSING_CONTEXT", "prompt").lower()
 
 # "block" (serve fallback text) or "allow" (serve the unverified answer) when
 # the judge errors out or times out. "block" = fail-closed.
@@ -293,16 +297,31 @@ class RagasFaithfulnessGuardrail(CustomGuardrail):
         contexts = extract_context(data)
         question = extract_question(data)
 
+        messages = list(data.get("messages") or [])
+        grounding = "metadata"
+
         if contexts is None:
-            if ON_MISSING_CONTEXT == "skip":
+            if ON_MISSING_CONTEXT == "prompt":
+                contexts = prompt_grounding_context(messages)
+                grounding = "prompt"
+                if contexts is None:
+                    # No metadata context and an empty/non-text conversation:
+                    # nothing exists to verify against.
+                    await log_event(req_id, 0, None, "skipped_no_context", target_model, question, answer)
+                    return Outcome("allow", final_text=answer)
+                logger.info(
+                    "[ragas] req=%s no guardrail_context, grounding against full prompt "
+                    "(transparent mode; catches model fabrication only)", req_id,
+                )
+            elif ON_MISSING_CONTEXT == "skip":
                 logger.info("[ragas] req=%s no guardrail_context, skipping (migration mode)", req_id)
                 await log_event(req_id, 0, None, "skipped_no_context", target_model, question, answer)
                 return Outcome("allow", final_text=answer)
-            logger.warning("[ragas] req=%s no guardrail_context, rejecting (fail-closed)", req_id)
-            await log_event(req_id, 0, None, "rejected_no_context", target_model, question, answer)
-            return Outcome("reject", message=MISSING_CONTEXT_MESSAGE)
+            else:
+                logger.warning("[ragas] req=%s no guardrail_context, rejecting (strict mode)", req_id)
+                await log_event(req_id, 0, None, "rejected_no_context", target_model, question, answer)
+                return Outcome("reject", message=MISSING_CONTEXT_MESSAGE)
 
-        messages = list(data.get("messages") or [])
         current = answer
         attempt = 0
 
@@ -325,7 +344,7 @@ class RagasFaithfulnessGuardrail(CustomGuardrail):
                 await log_event(req_id, attempt, None, "no_claims", target_model, question, current)
                 return Outcome("allow", final_text=current)
 
-            logger.info("[ragas] req=%s attempt=%d score=%.3f", req_id, attempt, score)
+            logger.info("[ragas] req=%s attempt=%d score=%.3f grounding=%s", req_id, attempt, score, grounding)
 
             if score >= PASS_THRESHOLD:
                 await log_event(req_id, attempt, score, "passed", target_model, question, current)

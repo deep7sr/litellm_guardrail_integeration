@@ -1,12 +1,18 @@
 # LiteLLM RAGAS Faithfulness Guardrail
 
 A production-oriented hallucination guardrail for a central LiteLLM proxy:
-every RAG response is decomposed into factual claims and verified against
-the retrieved context (RAGAS Faithfulness) by a self-hosted judge model
-before it reaches the end user. Ungrounded answers are regenerated with
-corrective feedback; persistent failures are replaced with a safe fallback.
-The pipeline is **fail-closed**: missing context, judge errors, timeouts,
-and retry exhaustion all block rather than pass.
+every response is decomposed into factual claims and verified against its
+grounding source (RAGAS Faithfulness) by a self-hosted judge model before
+it reaches the end user. Ungrounded answers are regenerated with corrective
+feedback; persistent failures are replaced with a safe fallback. The
+pipeline is **fail-closed**: judge errors, timeouts, and retry exhaustion
+all block rather than pass.
+
+Grounding is two-tier: by default the proxy is **invisible middleware** —
+requests without explicit context are verified against the full conversation
+the model was shown (no app or user changes needed). RAG apps can opt in to
+strict verification against their retrieved documents only by attaching one
+server-side metadata field. See `docs/INTEGRATION.md`.
 
 - **`docs/REVIEW.md`** — full architecture review: what was wrong with the
   previous iteration, every decision made here, judge-model recommendation,
@@ -42,7 +48,9 @@ appropriate GPUs. No GPU available for dev? Comment out `vllm-judge` in the
 compose file and point `JUDGE_BASE_URL`/`JUDGE_MODEL`/`JUDGE_API_KEY` at any
 OpenAI-compatible endpoint (see `.env.example` for the Groq settings).
 
-Send a guarded request:
+Any chat completion through the proxy is now guarded automatically — no
+special request format needed. A RAG app that wants strict
+retrieved-documents-only verification adds the optional metadata field:
 
 ```bash
 curl http://localhost:4000/v1/chat/completions \
@@ -60,8 +68,8 @@ curl http://localhost:4000/v1/chat/completions \
   }'
 ```
 
-Omit `metadata.guardrail_context` and the request is rejected with HTTP 400
-(set `RAGAS_ON_MISSING_CONTEXT=skip` during migration).
+Without the metadata field, the same request is still scored — grounded
+against the conversation itself (transparent mode).
 
 ## Tests
 
@@ -75,7 +83,7 @@ pip install pytest && pytest tests/ -v
 |---|---|---|
 | `RAGAS_PASS_THRESHOLD` | `0.7` | Min fraction of supported claims (calibrate per `docs/REVIEW.md` §7) |
 | `RAGAS_MAX_RETRIES` | `2` | Regeneration attempts before fallback |
-| `RAGAS_ON_MISSING_CONTEXT` | `block` | `block` (400) or `skip` (migration only) |
+| `RAGAS_ON_MISSING_CONTEXT` | `prompt` | `prompt` (transparent full-conversation grounding), `block` (strict 400), or `skip` |
 | `RAGAS_ON_SCORER_ERROR` | `block` | `block` (fallback text) or `allow` |
 | `RAGAS_SCORING_TIMEOUT_S` | `60` | Judge scoring timeout per attempt |
 | `JUDGE_BASE_URL` / `JUDGE_MODEL` / `JUDGE_API_KEY` | local vLLM | Any OpenAI-compatible judge endpoint |
