@@ -8,11 +8,11 @@ feedback; persistent failures are replaced with a safe fallback. The
 pipeline is **fail-closed**: judge errors, timeouts, and retry exhaustion
 all block rather than pass.
 
-Grounding is two-tier: by default the proxy is **invisible middleware** —
-requests without explicit context are verified against the full conversation
-the model was shown (no app or user changes needed). RAG apps can opt in to
-strict verification against their retrieved documents only by attaching one
-server-side metadata field. See `docs/INTEGRATION.md`.
+The proxy is **invisible middleware**: applications send completely normal
+OpenAI-format requests, and every answer is verified against the full
+conversation the model was shown (the model's own earlier replies excluded).
+No app or end-user changes are needed. See `docs/INTEGRATION.md` for the
+precise guarantee and its limits.
 
 - **`docs/REVIEW.md`** — full architecture review: what was wrong with the
   previous iteration, every decision made here, judge-model recommendation,
@@ -48,9 +48,8 @@ appropriate GPUs. No GPU available for dev? Comment out `vllm-judge` in the
 compose file and point `JUDGE_BASE_URL`/`JUDGE_MODEL`/`JUDGE_API_KEY` at any
 OpenAI-compatible endpoint (see `.env.example` for the Groq settings).
 
-Any chat completion through the proxy is now guarded automatically — no
-special request format needed. A RAG app that wants strict
-retrieved-documents-only verification adds the optional metadata field:
+Any chat completion through the proxy is guarded automatically — no special
+request format needed:
 
 ```bash
 curl http://localhost:4000/v1/chat/completions \
@@ -60,16 +59,13 @@ curl http://localhost:4000/v1/chat/completions \
     "messages": [
       {"role": "system", "content": "Answer using the context.\n\nThe X100 battery lasts 10 hours."},
       {"role": "user", "content": "How long does the battery last?"}
-    ],
-    "metadata": {
-      "guardrail_context": ["The X100 battery lasts 10 hours."],
-      "guardrail_question": "How long does the battery last?"
-    }
+    ]
   }'
 ```
 
-Without the metadata field, the same request is still scored — grounded
-against the conversation itself (transparent mode).
+The answer is scored against the conversation; if the model adds anything
+it wasn't told, the guardrail retries with corrective feedback and, failing
+that, returns the fallback message instead.
 
 ## Tests
 
@@ -83,7 +79,6 @@ pip install pytest && pytest tests/ -v
 |---|---|---|
 | `RAGAS_PASS_THRESHOLD` | `0.7` | Min fraction of supported claims (calibrate per `docs/REVIEW.md` §7) |
 | `RAGAS_MAX_RETRIES` | `2` | Regeneration attempts before fallback |
-| `RAGAS_ON_MISSING_CONTEXT` | `prompt` | `prompt` (transparent full-conversation grounding), `block` (strict 400), or `skip` |
 | `RAGAS_ON_SCORER_ERROR` | `block` | `block` (fallback text) or `allow` |
 | `RAGAS_SCORING_TIMEOUT_S` | `60` | Judge scoring timeout per attempt |
 | `JUDGE_BASE_URL` / `JUDGE_MODEL` / `JUDGE_API_KEY` | local vLLM | Any OpenAI-compatible judge endpoint |

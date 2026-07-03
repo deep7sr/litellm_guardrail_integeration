@@ -1,12 +1,12 @@
 """RAGAS faithfulness guardrail for the LiteLLM proxy.
 
-Scores every non-internal chat completion against explicitly-supplied
-retrieved context (see context_contract.py for the integration contract),
-regenerates with corrective feedback on failure, and never serves an
-unverified low-scoring answer.
+Fully transparent middleware: applications send normal OpenAI-format
+requests, and every non-internal chat completion is scored against the
+conversation the model was shown (see context_contract.py). Ungrounded
+answers are regenerated with corrective feedback; an unverified low-scoring
+answer is never served.
 
 Fail-closed by default:
-  - missing context        -> request rejected with HTTP 400 (configurable)
   - scorer error/timeout   -> fallback text served (configurable)
   - retry exhaustion       -> fallback text served
   - streaming responses    -> buffered and scored before release (no bypass)
@@ -24,11 +24,10 @@ import logging
 import math
 import os
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, AsyncGenerator, List, Optional
 
 import asyncpg
-from fastapi import HTTPException
 from openai import AsyncOpenAI
 from ragas.dataset_schema import SingleTurnSample
 from ragas.llms import llm_factory
@@ -40,7 +39,6 @@ from litellm.proxy._types import UserAPIKeyAuth
 
 from context_contract import (
     INTERNAL_FLAG,
-    extract_context,
     extract_question,
     is_internal_call,
     prompt_grounding_context,
@@ -58,15 +56,6 @@ MAX_RETRIES = int(os.environ.get("RAGAS_MAX_RETRIES", "2"))
 SCORING_TIMEOUT_S = float(os.environ.get("RAGAS_SCORING_TIMEOUT_S", "60"))
 MAX_CONCURRENT_SCORING = int(os.environ.get("RAGAS_MAX_CONCURRENT_SCORING", "8"))
 
-# What to do when a request carries no metadata["guardrail_context"]:
-#   "prompt" (default) - ground the answer against the full conversation the
-#             model was shown. Fully transparent to un-integrated apps:
-#             catches model fabrication, but cannot catch falsehoods the
-#             user themselves asserted (those are part of the conversation).
-#   "block"  - reject with HTTP 400; strict contract enforcement.
-#   "skip"   - let the answer through unscored (logged); migration use only.
-ON_MISSING_CONTEXT = os.environ.get("RAGAS_ON_MISSING_CONTEXT", "prompt").lower()
-
 # "block" (serve fallback text) or "allow" (serve the unverified answer) when
 # the judge errors out or times out. "block" = fail-closed.
 ON_SCORER_ERROR = os.environ.get("RAGAS_ON_SCORER_ERROR", "block").lower()
@@ -83,13 +72,6 @@ RETRY_FEEDBACK = (
 FALLBACK_TEXT = (
     "I wasn't able to find a fully supported answer to this in the available documents."
 )
-MISSING_CONTEXT_MESSAGE = (
-    "This proxy enforces a grounding guardrail: requests must include the "
-    "retrieved context in metadata['guardrail_context'] (a list of strings). "
-    "See docs/INTEGRATION.md. Set RAGAS_ON_MISSING_CONTEXT=skip to disable "
-    "enforcement during migration."
-)
-
 # ---------------------------------------------------------------------------
 # Judge / scorer — talks directly to the judge endpoint, never via the proxy
 # ---------------------------------------------------------------------------
@@ -192,9 +174,8 @@ async def log_event(req_id, attempt, score, verdict, target_model, question, ans
 
 @dataclass
 class Outcome:
-    action: str  # "allow" | "replace" | "reject"
+    action: str  # "allow" | "replace"
     final_text: str = ""
-    message: str = ""
 
 
 class RagasFaithfulnessGuardrail(CustomGuardrail):
@@ -202,8 +183,8 @@ class RagasFaithfulnessGuardrail(CustomGuardrail):
         super().__init__(**kwargs)
         logger.info(
             "[ragas] guardrail initialized: threshold=%.2f retries=%d "
-            "on_missing_context=%s on_scorer_error=%s judge=%s @ %s",
-            PASS_THRESHOLD, MAX_RETRIES, ON_MISSING_CONTEXT, ON_SCORER_ERROR,
+            "on_scorer_error=%s judge=%s @ %s",
+            PASS_THRESHOLD, MAX_RETRIES, ON_SCORER_ERROR,
             JUDGE_MODEL, JUDGE_BASE_URL,
         )
 
@@ -225,8 +206,6 @@ class RagasFaithfulnessGuardrail(CustomGuardrail):
             return response
 
         outcome = await self._evaluate(data, answer)
-        if outcome.action == "reject":
-            raise HTTPException(status_code=400, detail={"error": outcome.message})
         if outcome.final_text != answer:
             response.choices[0].message.content = outcome.final_text
         return response
@@ -271,7 +250,7 @@ class RagasFaithfulnessGuardrail(CustomGuardrail):
                 yield c
             return
 
-        replacement = outcome.final_text if outcome.action != "reject" else outcome.message
+        replacement = outcome.final_text
         if not chunks:
             return
         try:
@@ -294,33 +273,14 @@ class RagasFaithfulnessGuardrail(CustomGuardrail):
     async def _evaluate(self, data: dict, answer: str) -> Outcome:
         req_id = str(data.get("litellm_call_id") or uuid.uuid4())[:8]
         target_model = data.get("model")
-        contexts = extract_context(data)
         question = extract_question(data)
-
         messages = list(data.get("messages") or [])
-        grounding = "metadata"
 
+        contexts = prompt_grounding_context(messages)
         if contexts is None:
-            if ON_MISSING_CONTEXT == "prompt":
-                contexts = prompt_grounding_context(messages)
-                grounding = "prompt"
-                if contexts is None:
-                    # No metadata context and an empty/non-text conversation:
-                    # nothing exists to verify against.
-                    await log_event(req_id, 0, None, "skipped_no_context", target_model, question, answer)
-                    return Outcome("allow", final_text=answer)
-                logger.info(
-                    "[ragas] req=%s no guardrail_context, grounding against full prompt "
-                    "(transparent mode; catches model fabrication only)", req_id,
-                )
-            elif ON_MISSING_CONTEXT == "skip":
-                logger.info("[ragas] req=%s no guardrail_context, skipping (migration mode)", req_id)
-                await log_event(req_id, 0, None, "skipped_no_context", target_model, question, answer)
-                return Outcome("allow", final_text=answer)
-            else:
-                logger.warning("[ragas] req=%s no guardrail_context, rejecting (strict mode)", req_id)
-                await log_event(req_id, 0, None, "rejected_no_context", target_model, question, answer)
-                return Outcome("reject", message=MISSING_CONTEXT_MESSAGE)
+            # Empty / non-text conversation: nothing exists to verify against.
+            await log_event(req_id, 0, None, "skipped_no_context", target_model, question, answer)
+            return Outcome("allow", final_text=answer)
 
         current = answer
         attempt = 0
@@ -344,7 +304,7 @@ class RagasFaithfulnessGuardrail(CustomGuardrail):
                 await log_event(req_id, attempt, None, "no_claims", target_model, question, current)
                 return Outcome("allow", final_text=current)
 
-            logger.info("[ragas] req=%s attempt=%d score=%.3f grounding=%s", req_id, attempt, score, grounding)
+            logger.info("[ragas] req=%s attempt=%d score=%.3f", req_id, attempt, score)
 
             if score >= PASS_THRESHOLD:
                 await log_event(req_id, attempt, score, "passed", target_model, question, current)

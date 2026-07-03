@@ -31,7 +31,7 @@ the fallback) as the price of near-zero false passes.
 
 ---
 
-## Finding 1 — Context extraction (Open Problem #1): replaced role inference with an explicit metadata contract
+## Finding 1 — Context extraction (Open Problem #1): replaced role inference with full-conversation grounding
 
 **Problem.** Both extraction strategies tried so far are broken in
 different ways: reading user messages as context is a confirmed
@@ -42,39 +42,32 @@ making the guardrail score everything as ungrounded. Any role heuristic
 also inherits a subtler flaw: the system prompt's *instructions* ("answer
 politely...") get scored as if they were evidence.
 
-**Decision: a two-tier design.** Role-based inference is gone entirely;
-there is no cross-team message-format convention to enforce.
+**Decision: transparent full-conversation grounding.** Role-based inference
+is gone entirely; there is no cross-team message-format convention to
+enforce. The grounding source for every answer is the full conversation the
+model was shown, *excluding the model's own earlier replies* (so a turn-3
+hallucination can't become turn-5 "ground truth"). This requires zero
+changes from any application or end user — the proxy is invisible
+middleware — and it verifies the core guarantee: the model invented nothing
+beyond what it was told.
 
-- **Transparent tier (default, `RAGAS_ON_MISSING_CONTEXT=prompt`).** When a
-  request carries no explicit context, the grounding source is the full
-  conversation the model was shown, *excluding the model's own earlier
-  replies* (so a turn-3 hallucination can't become turn-5 "ground truth").
-  This requires zero changes from any application or end user — the proxy
-  is invisible middleware — and it verifies the core guarantee: the model
-  invented nothing beyond what it was told. Its documented blind spot: a
-  falsehood asserted by the user is part of the conversation, so the model
-  repeating it passes. That is user-supplied misinformation, not model
-  hallucination, and no middleware can distinguish truth from user claims
-  without being told what the trusted documents are.
-- **Strict tier (opt-in per request).** An application's server-side backend
-  may attach `metadata["guardrail_context"]` (list of retrieved chunks; the
-  end user never sees or touches this field). The guardrail then verifies
-  against those documents only — the same explicit-grounding-source pattern
-  AWS Bedrock and Azure use — which closes the user-asserted-falsehood hole
-  for apps that need it. A `block` mode exists for proxies that serve only
-  integrated RAG apps and want the contract enforced with HTTP 400.
-
-Malformed explicit context (wrong type, empty strings) is treated as
-missing, not scored against garbage. See `context_contract.py` and its unit
-tests.
+Documented blind spot, accepted deliberately by the project owner: a
+falsehood asserted by the *user* is part of the conversation, so the model
+repeating it passes. That is user-supplied misinformation, not model
+hallucination, and no middleware can distinguish truth from user claims
+without an out-of-band source of trusted documents. (An opt-in strict tier —
+retrieved chunks passed via request metadata, the pattern AWS Bedrock and
+Azure use — was implemented and then removed at the owner's direction to
+keep the system fully transparent; it can be restored from git history if a
+future application needs answers verified against a knowledge base
+regardless of user claims.) See `context_contract.py` and its unit tests.
 
 ## Finding 2 — Question extraction (Open Problem #2)
 
-`metadata["guardrail_question"]` is the preferred source; the last
-plain-text user message is only a fallback. Note the question only shapes
-RAGAS's claim decomposition — with the metadata contract it can no longer
-affect what counts as evidence, so the residual risk of a weak fallback is
-accuracy, not security.
+The question is the last plain-text user message. It only shapes RAGAS's
+claim decomposition — it is never part of the grounding evidence, so a
+conversational last turn ("restate that answer") costs a little decomposition
+precision, never correctness or security.
 
 ## Finding 3 — Streaming responses bypassed the guardrail entirely (not in the brief; highest-severity new finding)
 
