@@ -54,9 +54,17 @@ class Harness:
 
         async def fake_score(question, contexts, answer):
             self.scored_texts.append(answer)
-            return self.scores.pop(0)
+            val = self.scores.pop(0)
+            if val is None:
+                return g.ScoreResult(score=None, error="fake judge failure")
+            if isinstance(val, float) and math.isnan(val):
+                return g.ScoreResult(score=val)
+            return g.ScoreResult(
+                score=val, duration_ms=12,
+                claims=[{"statement": "claim", "verdict": 1, "reason": "supported by context"}],
+            )
 
-        async def fake_log(req_id, attempt, score, verdict, *rest):
+        async def fake_log(req_id, attempt, score, verdict, *rest, **kw):
             self.events.append((verdict, attempt, score))
 
         async def fake_regen(self_gr, model, messages, req_id):

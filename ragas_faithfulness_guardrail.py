@@ -16,20 +16,28 @@ server), NOT through this proxy, so they can never re-trigger the guardrail.
 Regeneration calls go through the in-process LiteLLM router, which also
 bypasses the proxy's guardrail layer; the metadata flag check is kept as a
 second line of defense.
+
+Observability: every attempt logs the full picture to Postgres — the answer
+received from the generation model, the grounding context used, the
+claim-by-claim judge verdicts WITH the judge's stated reason for each, the
+score, timing, and any error — so the dashboard can show exactly why each
+decision was made.
 """
 
 import asyncio
 import copy
+import json
 import logging
 import math
 import os
+import time
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, AsyncGenerator, List, Optional
 
 import asyncpg
 from openai import AsyncOpenAI
-from ragas.dataset_schema import SingleTurnSample
+from ragas.dataset_schema import SingleTurnSample  # noqa: F401  (public API kept importable)
 from ragas.llms import llm_factory
 from ragas.metrics import Faithfulness
 
@@ -72,6 +80,11 @@ RETRY_FEEDBACK = (
 FALLBACK_TEXT = (
     "I wasn't able to find a fully supported answer to this in the available documents."
 )
+
+# Caps for what we persist per event (keep rows bounded, but big enough to
+# actually diagnose from the dashboard).
+Q_CAP, A_CAP, CTX_CAP = 1000, 4000, 8000
+
 # ---------------------------------------------------------------------------
 # Judge / scorer — talks directly to the judge endpoint, never via the proxy
 # ---------------------------------------------------------------------------
@@ -82,26 +95,62 @@ _scorer = Faithfulness(llm=_judge_llm)
 _scoring_semaphore = asyncio.Semaphore(MAX_CONCURRENT_SCORING)
 
 
-async def score_answer(question: str, contexts: List[str], answer: str) -> Optional[float]:
-    """Return the faithfulness score in [0,1], NaN if the answer contained no
-    checkable claims, or None on scorer error/timeout."""
-    sample = SingleTurnSample(
-        user_input=question or "N/A",
-        response=answer,
-        retrieved_contexts=contexts,
-    )
+@dataclass
+class ScoreResult:
+    """Everything the judge produced for one answer, for decisions AND logging.
+
+    score: fraction of claims supported; NaN if the answer contained no
+    checkable claims; None if the judge errored/timed out (see .error).
+    claims: [{"statement": str, "verdict": 0|1, "reason": str}, ...] — the
+    judge's per-claim decision and its stated reason.
+    """
+    score: Optional[float]
+    claims: List[dict] = field(default_factory=list)
+    error: str = ""
+    duration_ms: int = 0
+
+
+async def score_answer(question: str, contexts: List[str], answer: str) -> ScoreResult:
+    row = {
+        "user_input": question or "N/A",
+        "response": answer,
+        "retrieved_contexts": contexts,
+    }
+    started = time.monotonic()
+
+    async def _run():
+        # Call the metric's two stages directly (instead of single_turn_ascore)
+        # so we can capture the claim-level breakdown for the dashboard.
+        stmts = await _scorer._create_statements(row, None)
+        statements = stmts.statements
+        if not statements:
+            return float("nan"), []
+        verdicts = await _scorer._create_verdicts(row, statements, None)
+        claims = [
+            {"statement": s.statement, "verdict": int(s.verdict), "reason": s.reason}
+            for s in verdicts.statements
+        ]
+        if not claims:
+            return float("nan"), []
+        score = sum(c["verdict"] for c in claims) / len(claims)
+        return score, claims
+
     try:
         async with _scoring_semaphore:
-            score = await asyncio.wait_for(
-                _scorer.single_turn_ascore(sample), timeout=SCORING_TIMEOUT_S
-            )
-        return float(score)
+            score, claims = await asyncio.wait_for(_run(), timeout=SCORING_TIMEOUT_S)
+        return ScoreResult(
+            score=score, claims=claims,
+            duration_ms=int((time.monotonic() - started) * 1000),
+        )
     except asyncio.TimeoutError:
-        logger.warning("[ragas] scoring timed out after %.0fs", SCORING_TIMEOUT_S)
-        return None
+        msg = f"judge scoring timed out after {SCORING_TIMEOUT_S:.0f}s"
+        logger.warning("[ragas] %s", msg)
+        return ScoreResult(score=None, error=msg,
+                           duration_ms=int((time.monotonic() - started) * 1000))
     except Exception as e:  # noqa: BLE001 — any judge failure is handled by policy
         logger.warning("[ragas] scoring failed: %s", e)
-        return None
+        return ScoreResult(score=None, error=f"{type(e).__name__}: {e}",
+                           duration_ms=int((time.monotonic() - started) * 1000))
 
 
 # ---------------------------------------------------------------------------
@@ -110,6 +159,30 @@ async def score_answer(question: str, contexts: List[str], answer: str) -> Optio
 
 _db_pool = None
 _db_lock = asyncio.Lock()
+
+_TABLE_DDL = """
+    CREATE TABLE IF NOT EXISTS ragas_events (
+        id SERIAL PRIMARY KEY,
+        req_id TEXT NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        attempt INT NOT NULL,
+        score DOUBLE PRECISION,
+        verdict TEXT NOT NULL,
+        target_model TEXT,
+        question TEXT,
+        answer_snippet TEXT
+    )
+"""
+
+# Columns added over time; applied idempotently so existing deployments
+# migrate on startup without manual steps.
+_MIGRATIONS = [
+    "ALTER TABLE ragas_events ADD COLUMN IF NOT EXISTS context TEXT",
+    "ALTER TABLE ragas_events ADD COLUMN IF NOT EXISTS claims JSONB",
+    "ALTER TABLE ragas_events ADD COLUMN IF NOT EXISTS error TEXT",
+    "ALTER TABLE ragas_events ADD COLUMN IF NOT EXISTS duration_ms INT",
+    "ALTER TABLE ragas_events ADD COLUMN IF NOT EXISTS threshold DOUBLE PRECISION",
+]
 
 
 async def get_db_pool():
@@ -128,21 +201,9 @@ async def get_db_pool():
         try:
             pool = await asyncpg.create_pool(dsn, min_size=1, max_size=5)
             async with pool.acquire() as conn:
-                await conn.execute(
-                    """
-                    CREATE TABLE IF NOT EXISTS ragas_events (
-                        id SERIAL PRIMARY KEY,
-                        req_id TEXT NOT NULL,
-                        created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-                        attempt INT NOT NULL,
-                        score DOUBLE PRECISION,
-                        verdict TEXT NOT NULL,
-                        target_model TEXT,
-                        question TEXT,
-                        answer_snippet TEXT
-                    )
-                    """
-                )
+                await conn.execute(_TABLE_DDL)
+                for stmt in _MIGRATIONS:
+                    await conn.execute(stmt)
             logger.info("[ragas] connected to event DB, table ready")
             _db_pool = pool
         except Exception as e:
@@ -151,7 +212,10 @@ async def get_db_pool():
     return _db_pool
 
 
-async def log_event(req_id, attempt, score, verdict, target_model, question, answer):
+async def log_event(
+    req_id, attempt, score, verdict, target_model, question, answer,
+    context=None, claims=None, error=None, duration_ms=None,
+):
     pool = await get_db_pool()
     if pool is None:
         return
@@ -159,10 +223,14 @@ async def log_event(req_id, attempt, score, verdict, target_model, question, ans
         async with pool.acquire() as conn:
             await conn.execute(
                 """INSERT INTO ragas_events
-                   (req_id, attempt, score, verdict, target_model, question, answer_snippet)
-                   VALUES ($1, $2, $3, $4, $5, $6, $7)""",
+                   (req_id, attempt, score, verdict, target_model, question,
+                    answer_snippet, context, claims, error, duration_ms, threshold)
+                   VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb,$10,$11,$12)""",
                 req_id, attempt, score, verdict, target_model,
-                (question or "")[:500], (answer or "")[:500],
+                (question or "")[:Q_CAP], (answer or "")[:A_CAP],
+                (context or "")[:CTX_CAP] or None,
+                json.dumps(claims) if claims else None,
+                error or None, duration_ms, PASS_THRESHOLD,
             )
     except Exception as e:
         logger.warning("[ragas] req=%s failed to log event: %s", req_id, e)
@@ -281,33 +349,40 @@ class RagasFaithfulnessGuardrail(CustomGuardrail):
             # Empty / non-text conversation: nothing exists to verify against.
             await log_event(req_id, 0, None, "skipped_no_context", target_model, question, answer)
             return Outcome("allow", final_text=answer)
+        context_str = "\n".join(contexts)
 
         current = answer
         attempt = 0
 
         while True:
-            score = await score_answer(question, contexts, current)
+            result = await score_answer(question, contexts, current)
+            score = result.score
 
             if score is None:
+                verdict = "scorer_error_allowed" if ON_SCORER_ERROR == "allow" else "scorer_error_blocked"
+                logger.warning("[ragas] req=%s scorer error (%s): %s", req_id, verdict, result.error)
+                await log_event(req_id, attempt, None, verdict, target_model, question, current,
+                                context=context_str, error=result.error, duration_ms=result.duration_ms)
                 if ON_SCORER_ERROR == "allow":
-                    logger.warning("[ragas] req=%s scorer error, allowing (fail-open configured)", req_id)
-                    await log_event(req_id, attempt, None, "scorer_error_allowed", target_model, question, current)
                     return Outcome("allow", final_text=current)
-                logger.warning("[ragas] req=%s scorer error, serving fallback (fail-closed)", req_id)
-                await log_event(req_id, attempt, None, "scorer_error_blocked", target_model, question, current)
                 return Outcome("replace", final_text=FALLBACK_TEXT)
 
             if math.isnan(score):
-                # RAGAS returns NaN when the answer contains no verifiable
-                # claims (e.g. an honest refusal). Nothing to hallucinate.
+                # No verifiable claims (e.g. an honest refusal): nothing to
+                # hallucinate. Logged with its own verdict, never as a fake 1.0.
                 logger.info("[ragas] req=%s attempt=%d no checkable claims, passing", req_id, attempt)
-                await log_event(req_id, attempt, None, "no_claims", target_model, question, current)
+                await log_event(req_id, attempt, None, "no_claims", target_model, question, current,
+                                context=context_str, duration_ms=result.duration_ms)
                 return Outcome("allow", final_text=current)
 
-            logger.info("[ragas] req=%s attempt=%d score=%.3f", req_id, attempt, score)
+            logger.info("[ragas] req=%s attempt=%d score=%.3f (%d/%d claims supported, %dms)",
+                        req_id, attempt, score,
+                        sum(c["verdict"] for c in result.claims), len(result.claims),
+                        result.duration_ms)
 
             if score >= PASS_THRESHOLD:
-                await log_event(req_id, attempt, score, "passed", target_model, question, current)
+                await log_event(req_id, attempt, score, "passed", target_model, question, current,
+                                context=context_str, claims=result.claims, duration_ms=result.duration_ms)
                 return Outcome("allow", final_text=current)
 
             if attempt >= MAX_RETRIES:
@@ -315,10 +390,12 @@ class RagasFaithfulnessGuardrail(CustomGuardrail):
                     "[ragas] req=%s EXHAUSTED %d retries, final score=%.3f, serving fallback",
                     req_id, MAX_RETRIES, score,
                 )
-                await log_event(req_id, attempt, score, "exhausted", target_model, question, current)
+                await log_event(req_id, attempt, score, "exhausted", target_model, question, current,
+                                context=context_str, claims=result.claims, duration_ms=result.duration_ms)
                 return Outcome("replace", final_text=FALLBACK_TEXT)
 
-            await log_event(req_id, attempt, score, "retrying", target_model, question, current)
+            await log_event(req_id, attempt, score, "retrying", target_model, question, current,
+                            context=context_str, claims=result.claims, duration_ms=result.duration_ms)
             attempt += 1
             messages = messages + [
                 {"role": "assistant", "content": current},
@@ -326,7 +403,9 @@ class RagasFaithfulnessGuardrail(CustomGuardrail):
             ]
             regenerated = await self._regenerate(target_model, messages, req_id)
             if regenerated is None:
-                await log_event(req_id, attempt, None, "regen_error", target_model, question, current)
+                await log_event(req_id, attempt, None, "regen_error", target_model, question, current,
+                                context=context_str,
+                                error="regeneration call failed or returned empty (see proxy logs)")
                 return Outcome("replace", final_text=FALLBACK_TEXT)
             current = regenerated
 
