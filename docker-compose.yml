@@ -1,0 +1,84 @@
+services:
+  litellm:
+    build: .
+    image: litellm-ragas-guardrail:latest
+    container_name: litellm
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./litellm_config.yaml:/app/config.yaml
+    command: ["--config", "/app/config.yaml", "--port", "4000"]
+    environment:
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - LITELLM_MASTER_KEY=${LITELLM_MASTER_KEY:?set LITELLM_MASTER_KEY in .env}
+      - DATABASE_URL=postgresql://llmproxy:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@db:5432/litellm
+      # --- guardrail configuration ---
+      - RAGAS_PASS_THRESHOLD=${RAGAS_PASS_THRESHOLD:-0.7}
+      - RAGAS_MAX_RETRIES=${RAGAS_MAX_RETRIES:-2}
+      - RAGAS_ON_MISSING_CONTEXT=${RAGAS_ON_MISSING_CONTEXT:-block}
+      - RAGAS_ON_SCORER_ERROR=${RAGAS_ON_SCORER_ERROR:-block}
+      - RAGAS_SCORING_TIMEOUT_S=${RAGAS_SCORING_TIMEOUT_S:-60}
+      # --- judge endpoint (defaults to the self-hosted vLLM service below;
+      #     point at any OpenAI-compatible endpoint for dev, e.g. Groq) ---
+      - JUDGE_BASE_URL=${JUDGE_BASE_URL:-http://vllm-judge:8000/v1}
+      - JUDGE_MODEL=${JUDGE_MODEL:-Qwen/Qwen2.5-7B-Instruct}
+      - JUDGE_API_KEY=${JUDGE_API_KEY:-not-needed-for-local-vllm}
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  # Self-hosted judge. Requires an NVIDIA GPU (24 GB VRAM for the 7B default;
+  # see README for the 32B/72B production sizing). For GPU-less dev, comment
+  # this service out and set JUDGE_BASE_URL/JUDGE_MODEL/JUDGE_API_KEY to a
+  # hosted OpenAI-compatible endpoint instead.
+  vllm-judge:
+    image: vllm/vllm-openai:latest
+    container_name: vllm-judge
+    command:
+      - "--model"
+      - "${JUDGE_MODEL:-Qwen/Qwen2.5-7B-Instruct}"
+      - "--max-model-len"
+      - "16384"
+      - "--gpu-memory-utilization"
+      - "0.90"
+    environment:
+      - HUGGING_FACE_HUB_TOKEN=${HUGGING_FACE_HUB_TOKEN:-}
+    volumes:
+      - hf_cache:/root/.cache/huggingface
+    ports:
+      - "8000:8000"
+    ipc: host
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: unless-stopped
+
+  dashboard:
+    build: ./dashboard
+    container_name: ragas-dashboard
+    ports:
+      - "8080:8080"
+    environment:
+      - DATABASE_URL=postgresql://llmproxy:${POSTGRES_PASSWORD}@db:5432/litellm
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  db:
+    image: postgres:16
+    container_name: litellm_db
+    environment:
+      POSTGRES_DB: litellm
+      POSTGRES_USER: llmproxy
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - litellm_pg_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  litellm_pg_data:
+  hf_cache:

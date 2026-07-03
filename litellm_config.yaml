@@ -1,0 +1,22 @@
+# LiteLLM proxy configuration.
+#
+# Note: the judge model is intentionally NOT in this model_list. RAGAS judge
+# calls go directly from the guardrail to the judge endpoint (JUDGE_BASE_URL),
+# never through this proxy — that makes guardrail self-triggering on judge
+# traffic structurally impossible instead of relying on a model-name check.
+
+model_list:
+  - model_name: groq-llama-3.1-8b
+    litellm_params:
+      model: groq/llama-3.1-8b-instant
+      api_key: os.environ/GROQ_API_KEY
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+
+guardrails:
+  - guardrail_name: "ragas-faithfulness"
+    litellm_params:
+      guardrail: ragas_faithfulness_guardrail.RagasFaithfulnessGuardrail
+      mode: "post_call"
+      default_on: true

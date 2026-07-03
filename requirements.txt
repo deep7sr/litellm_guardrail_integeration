@@ -1,0 +1,6 @@
+# Guardrail dependencies installed on top of the LiteLLM proxy image.
+# Pin ragas to the 0.3 line: llm_factory(model, client=...) and the
+# instructor-based Faithfulness implementation are verified against it.
+ragas>=0.3.0,<0.4
+openai>=1.60.0
+asyncpg>=0.29.0
