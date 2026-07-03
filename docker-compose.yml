@@ -56,6 +56,22 @@ services:
               capabilities: [gpu]
     restart: unless-stopped
 
+  # Demo RAG chatbot (http://localhost:3000) — a plain RAG app with zero
+  # guardrail awareness, for showing the full flow to the team next to the
+  # diagnostics dashboard. Not part of the production deployment.
+  demo-app:
+    build: ./demo-app
+    container_name: ragas-demo-app
+    ports:
+      - "3000:3000"
+    environment:
+      - PROXY_BASE_URL=http://litellm:4000/v1
+      - PROXY_API_KEY=${LITELLM_MASTER_KEY}
+      - DEMO_MODEL=groq-llama-3.1-8b
+    depends_on:
+      - litellm
+    restart: unless-stopped
+
   dashboard:
     build: ./dashboard
     container_name: ragas-dashboard

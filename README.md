@@ -31,8 +31,9 @@ precise guarantee and its limits.
 | `litellm_config.yaml` | Proxy config registering the guardrail (`default_on: true`) |
 | `Dockerfile` / `requirements.txt` | Proxy image with RAGAS deps baked in |
 | `docker-compose.yml` | Proxy + Postgres + self-hosted vLLM judge + dashboard |
-| `dashboard/` | Live pass/fail event viewer (demo tool) on :8080 |
-| `tests/` | Unit tests for the extraction contract |
+| `dashboard/` | Per-request diagnostics dashboard on :8080 (claims, reasons, retries, timings) |
+| `demo-app/` | Demo RAG chatbot on :3000 with zero guardrail awareness (see `docs/DEMO.md` for the team-demo runbook) |
+| `tests/` | Unit + behavioral + rendering tests |
 
 ## Quick start
 
