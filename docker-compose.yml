@@ -22,6 +22,10 @@ services:
       - JUDGE_BASE_URL=${JUDGE_BASE_URL:-http://vllm-judge:8000/v1}
       - JUDGE_MODEL=${JUDGE_MODEL:-Qwen/Qwen2.5-7B-Instruct}
       - JUDGE_API_KEY=${JUDGE_API_KEY:-not-needed-for-local-vllm}
+      # json (default) avoids a documented Groq tool-calling bug seen on
+      # both openai/gpt-oss-20b and, intermittently, llama-3.1-8b-instant;
+      # set to "tools" for vLLM-with-guided-decoding deployments if desired.
+      - JUDGE_STRUCTURED_MODE=${JUDGE_STRUCTURED_MODE:-json}
     depends_on:
       - db
     restart: unless-stopped
