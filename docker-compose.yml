@@ -1,0 +1,61 @@
+services:
+  litellm:
+    image: ghcr.io/berriai/litellm:main-stable
+    container_name: litellm
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./litellm_config.yaml:/app/config.yaml
+      - ./guardrail/faithfulness_guardrail.py:/app/faithfulness_guardrail.py
+    command: ["--config", "/app/config.yaml", "--port", "4000"]
+    environment:
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - LITELLM_MASTER_KEY=${LITELLM_MASTER_KEY:-sk-1234}
+      - DATABASE_URL=postgresql://llmproxy:dbpassword9090@db:5432/litellm
+      # Guardrail hook settings
+      - SCORING_SERVICE_URL=http://scoring:8000
+      - PROXY_BASE_URL=http://localhost:4000/v1
+      - JUDGE_MODEL=judge-model
+      - RAGAS_PASS_THRESHOLD=0.7
+      - RAGAS_MAX_RETRIES=3
+      - RAGAS_ON_FAIL=block   # "block" (fail fast) or "retry" (regenerate)
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  scoring:
+    build: ./scoring_service
+    container_name: ragas-scoring
+    environment:
+      - LITELLM_BASE_URL=http://litellm:4000/v1
+      - LITELLM_API_KEY=${LITELLM_MASTER_KEY:-sk-1234}
+      - JUDGE_MODEL=judge-model
+      - DATABASE_URL=postgresql://llmproxy:dbpassword9090@db:5432/litellm
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  dashboard:
+    build: ./dashboard
+    container_name: ragas-dashboard
+    ports:
+      - "8080:8080"
+    environment:
+      - DATABASE_URL=postgresql://llmproxy:dbpassword9090@db:5432/litellm
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  db:
+    image: postgres:16
+    container_name: litellm_db
+    environment:
+      POSTGRES_DB: litellm
+      POSTGRES_USER: llmproxy
+      POSTGRES_PASSWORD: dbpassword9090
+    volumes:
+      - litellm_pg_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  litellm_pg_data:

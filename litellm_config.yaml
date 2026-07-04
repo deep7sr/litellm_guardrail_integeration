@@ -1,0 +1,24 @@
+model_list:
+  - model_name: groq-llama-3.1-8b
+    litellm_params:
+      model: groq/llama-3.1-8b-instant
+      api_key: os.environ/GROQ_API_KEY
+
+  # Judge model used by the scoring service (via this proxy). Swap the
+  # underlying litellm_params to a self-hosted endpoint (e.g. vLLM/Ollama
+  # serving an open-source model) without touching the guardrail code.
+  - model_name: judge-model
+    litellm_params:
+      model: groq/openai/gpt-oss-20b
+      api_key: os.environ/GROQ_API_KEY
+      reasoning_effort: "low"
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+
+guardrails:
+  - guardrail_name: "ragas-faithfulness"
+    litellm_params:
+      guardrail: faithfulness_guardrail.RagasFaithfulnessGuardrail
+      mode: "post_call"
+      default_on: true
