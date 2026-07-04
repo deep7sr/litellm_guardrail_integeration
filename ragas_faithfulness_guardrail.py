@@ -39,7 +39,16 @@ import asyncpg
 from openai import AsyncOpenAI
 from ragas.dataset_schema import SingleTurnSample  # noqa: F401  (public API kept importable)
 from ragas.llms import llm_factory
-from ragas.metrics import Faithfulness
+# NOTE: this must be ragas.metrics.collections.Faithfulness (the modern,
+# instructor-native implementation), NOT ragas.metrics.Faithfulness (the
+# legacy PydanticPrompt-based one). The legacy metric's internal
+# is_langchain_llm() heuristic (hasattr(llm, "agenerate") and not
+# hasattr(llm, "run_config")) misidentifies our llm_factory(...) judge as a
+# LangChain LLM and calls agenerate_prompt() on it, which doesn't exist on
+# that object -> AttributeError at scoring time, not at import time. The
+# collections version is built specifically to pair with llm_factory and
+# has the identical claim schema (statement/verdict/reason).
+from ragas.metrics.collections import Faithfulness
 
 import litellm
 from litellm.integrations.custom_guardrail import CustomGuardrail
@@ -111,21 +120,17 @@ class ScoreResult:
 
 
 async def score_answer(question: str, contexts: List[str], answer: str) -> ScoreResult:
-    row = {
-        "user_input": question or "N/A",
-        "response": answer,
-        "retrieved_contexts": contexts,
-    }
+    question = question or "N/A"
+    context_str = "\n".join(contexts)
     started = time.monotonic()
 
     async def _run():
-        # Call the metric's two stages directly (instead of single_turn_ascore)
-        # so we can capture the claim-level breakdown for the dashboard.
-        stmts = await _scorer._create_statements(row, None)
-        statements = stmts.statements
+        # Call the metric's two stages directly (instead of ascore) so we can
+        # capture the claim-level breakdown for the dashboard.
+        statements = await _scorer._create_statements(question, answer)
         if not statements:
             return float("nan"), []
-        verdicts = await _scorer._create_verdicts(row, statements, None)
+        verdicts = await _scorer._create_verdicts(statements, context_str)
         claims = [
             {"statement": s.statement, "verdict": int(s.verdict), "reason": s.reason}
             for s in verdicts.statements
