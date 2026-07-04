@@ -14,6 +14,12 @@ Options:
                 itself without an API key; NOT a real accuracy measurement)
   --sleep N     seconds between cases (default 2, be kind to rate limits)
   --only CAT    run only one category (grounded|refusal|hallucinated|mixed)
+  --ids A,B,C   run only these case ids (e.g. --ids G2,G5,G7,R1) — use this
+                to re-check specific cases without a full rerun
+
+Note on speed: on rate-limited judge tiers (e.g. Groq free tier) most of the
+wall time is 429 backoff, not scoring. Miss/error details print immediately
+per case, so a Ctrl+C loses nothing.
 
 Cases marked hard=True are known-difficult for LLM judges (unit conversion,
 cross-chunk synthesis). A miss there is calibration information, not
@@ -141,6 +147,7 @@ async def main():
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--sleep", type=float, default=2.0)
     ap.add_argument("--only", default=None)
+    ap.add_argument("--ids", default=None)
     args = ap.parse_args()
 
     if args.dry_run:
@@ -156,6 +163,9 @@ async def main():
         print(f"LIVE — judge={g.JUDGE_MODEL} @ {g.JUDGE_BASE_URL}, threshold={threshold}\n")
 
     cases = [c for c in CASES if not args.only or c["cat"] == args.only]
+    if args.ids:
+        wanted = {i.strip().upper() for i in args.ids.split(",")}
+        cases = [c for c in cases if c["id"] in wanted]
     false_blocks, missed_hallucinations, errors, ok = [], [], [], []
 
     print(f"{'id':5} {'category':13} {'expect':12} {'score':>7}  outcome")
@@ -183,6 +193,13 @@ async def main():
         score_str = "  nan" if (s is not None and math.isnan(s)) else ("    -" if s is None else f"{s:.3f}")
         hard = " [hard]" if c["hard"] else ""
         print(f"{c['id']:5} {c['cat']:13} {c['expect']:12} {score_str:>7}  {outcome}{hard}  ({dt:.1f}s)")
+        # Print diagnosis immediately so an interrupted run loses nothing.
+        if bucket is false_blocks or bucket is missed_hallucinations:
+            print(f"      answer: {c['a']}")
+            for cl in (r.claims or []):
+                mark = "SUPPORTED" if cl["verdict"] else "REJECTED"
+                print(f"      [{mark}] {cl['statement']}")
+                print(f"                reason: {cl['reason']}")
         if not args.dry_run:
             await asyncio.sleep(args.sleep)
 

@@ -81,6 +81,18 @@ JUDGE_BASE_URL = os.environ.get("JUDGE_BASE_URL", "http://vllm-judge:8000/v1")
 JUDGE_MODEL = os.environ.get("JUDGE_MODEL", "Qwen/Qwen2.5-7B-Instruct")
 JUDGE_API_KEY = os.environ.get("JUDGE_API_KEY", "not-needed-for-local-vllm")
 
+# How instructor forces the judge into the claim schema:
+#   "json"  (default) - response_format JSON mode; schema described in the
+#           prompt, output validated by instructor. Robust on providers whose
+#           tool-calling is strict/flaky (Groq rejected valid judge output
+#           with tool_use_failed when the model emitted a text-format
+#           function tag instead of a proper tool call — observed on BOTH
+#           gpt-oss-20b and, intermittently on long claim lists,
+#           llama-3.1-8b-instant).
+#   "tools" - function/tool-calling mode (instructor's default); fine on
+#           OpenAI and on vLLM with guided decoding.
+JUDGE_STRUCTURED_MODE = os.environ.get("JUDGE_STRUCTURED_MODE", "json").lower()
+
 RETRY_FEEDBACK = (
     "That answer was not fully grounded in the provided context. Regenerate it "
     "using ONLY facts stated in the context. If the context does not contain "
@@ -99,7 +111,20 @@ Q_CAP, A_CAP, CTX_CAP = 1000, 4000, 8000
 # ---------------------------------------------------------------------------
 
 _judge_client = AsyncOpenAI(base_url=JUDGE_BASE_URL, api_key=JUDGE_API_KEY)
-_judge_llm = llm_factory(JUDGE_MODEL, client=_judge_client)
+if JUDGE_STRUCTURED_MODE == "tools":
+    _judge_llm = llm_factory(JUDGE_MODEL, client=_judge_client)
+else:
+    # Same InstructorLLM that llm_factory builds, but with instructor's JSON
+    # mode instead of tool-calling (llm_factory doesn't expose the mode).
+    import instructor
+    from ragas.llms.base import InstructorLLM, InstructorModelArgs
+
+    _judge_llm = InstructorLLM(
+        client=instructor.from_openai(_judge_client, mode=instructor.Mode.JSON),
+        model=JUDGE_MODEL,
+        provider="openai",
+        model_args=InstructorModelArgs(),
+    )
 _scorer = Faithfulness(llm=_judge_llm)
 _scoring_semaphore = asyncio.Semaphore(MAX_CONCURRENT_SCORING)
 
