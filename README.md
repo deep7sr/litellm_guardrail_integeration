@@ -61,7 +61,15 @@ Requests **without** `guardrail_context` pass through unscored and are logged
 with verdict `unscored`, so unguarded traffic is visible on the dashboard and
 can be chased down per team.
 
-See `examples/rag_client_example.py` for a complete client.
+See `examples/rag_client_example.py` for a complete raw-format client, or —
+preferred — use the internal helper in `sdk/company_llm.py`
+(`guarded_completion`), which builds the metadata and converts guardrail
+blocks into a typed `GuardrailBlockedError`.
+
+Developer-facing docs:
+- `docs/INTEGRATION.md` — the one-pager to hand to application teams.
+- `docs/WHY_CONTEXT_CONTRACT.md` — full justification for the contract, with
+  our incident evidence and industry citations (AWS/Azure/NVIDIA/OWASP).
 
 ## Fail behavior: `block` vs `retry`
 
