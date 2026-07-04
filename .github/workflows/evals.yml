@@ -1,0 +1,90 @@
+name: evals
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  # Job 1: deterministic pipeline verification (no external APIs, no secrets).
+  # Proves: proxy -> langfuse callback -> trace capture -> worker -> DeepEval
+  # scoring -> scores pushed, plus the golden-dataset gate catching a
+  # deliberately hallucinating model.
+  pipeline-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install proxy environment
+        run: |
+          python -m venv /tmp/venv-proxy
+          /tmp/venv-proxy/bin/pip install -q 'litellm[proxy]' 'langfuse>=2,<3'
+
+      - name: Install worker environment
+        run: |
+          python -m venv /tmp/venv-worker
+          /tmp/venv-worker/bin/pip install -q -r eval_worker/requirements.txt pytest
+
+      - name: Start local stack (mock LLM, Langfuse stub, LiteLLM proxy)
+        run: |
+          PROXY_VENV=/tmp/venv-proxy ./tests/run_stack.sh /tmp/stack
+          for i in $(seq 1 60); do
+            curl -sf http://127.0.0.1:4010/health/liveliness && break
+            sleep 2
+          done
+
+      - name: End-to-end pipeline tests
+        run: WORKER_PYTHON=/tmp/venv-worker/bin/python /tmp/venv-worker/bin/python -m pytest -x -q tests/test_e2e_pipeline.py
+
+      - name: Golden-dataset gate self-check
+        run: WORKER_PYTHON=/tmp/venv-worker/bin/python bash tests/check_golden_harness.sh
+
+      - name: Dump service logs on failure
+        if: failure()
+        run: tail -50 /tmp/stack/*.log
+
+  # Job 2: real-model golden dataset evaluation. Runs only when the
+  # GROQ_API_KEY secret is configured on the repository.
+  golden-evals:
+    runs-on: ubuntu-latest
+    env:
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for API key
+        id: keycheck
+        run: |
+          if [ -n "$GROQ_API_KEY" ]; then echo "have_key=true" >> "$GITHUB_OUTPUT"; fi
+
+      - uses: actions/setup-python@v5
+        if: steps.keycheck.outputs.have_key == 'true'
+        with:
+          python-version: "3.11"
+
+      - name: Install environments
+        if: steps.keycheck.outputs.have_key == 'true'
+        run: |
+          python -m venv /tmp/venv-proxy
+          /tmp/venv-proxy/bin/pip install -q 'litellm[proxy]' 'langfuse>=2,<3'
+          python -m venv /tmp/venv-worker
+          /tmp/venv-worker/bin/pip install -q -r eval_worker/requirements.txt pytest
+
+      - name: Start LiteLLM proxy with real models
+        if: steps.keycheck.outputs.have_key == 'true'
+        run: |
+          /tmp/venv-proxy/bin/litellm --config evals/litellm_config.ci.yaml --port 4010 --host 127.0.0.1 > /tmp/litellm.log 2>&1 &
+          for i in $(seq 1 60); do
+            curl -sf http://127.0.0.1:4010/health/liveliness && break
+            sleep 2
+          done
+
+      - name: Run golden dataset evals (real models)
+        if: steps.keycheck.outputs.have_key == 'true'
+        run: /tmp/venv-worker/bin/python -m pytest -q evals/test_golden_dataset.py
+
+      - name: Dump proxy log on failure
+        if: failure() && steps.keycheck.outputs.have_key == 'true'
+        run: tail -50 /tmp/litellm.log

@@ -1,0 +1,167 @@
+# Full local stack: LiteLLM proxy (+ RAGAS guardrail) + self-hosted Langfuse
+# (trace capture & dashboards) + DeepEval online eval worker.
+#
+# Langfuse services adapted from the official self-hosting compose:
+# https://langfuse.com/self-hosting/docker-compose
+#
+# Quick start:
+#   cp .env.example .env   # fill in GROQ_API_KEY
+#   docker compose up -d --build
+#   Langfuse UI: http://localhost:3000  (login from .env INIT vars)
+#   LiteLLM:     http://localhost:4000
+
+services:
+  litellm:
+    build: ./litellm_image
+    container_name: litellm
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./litellm_config.yaml:/app/config.yaml
+      - ./faithfulness_guardrail_ragas.py:/app/faithfulness_guardrail_ragas.py
+    command: ["--config", "/app/config.yaml", "--port", "4000"]
+    environment:
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:-sk-1234}
+      DATABASE_URL: postgresql://llmproxy:dbpassword9090@db:5432/litellm
+      LANGFUSE_HOST: http://langfuse-web:3000
+      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-pk-lf-local-dev}
+      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-sk-lf-local-dev}
+    depends_on:
+      - db
+      - langfuse-web
+    restart: unless-stopped
+
+  db:
+    image: postgres:16
+    container_name: litellm_db
+    environment:
+      POSTGRES_DB: litellm
+      POSTGRES_USER: llmproxy
+      POSTGRES_PASSWORD: dbpassword9090
+    volumes:
+      - litellm_pg_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  eval-worker:
+    build: ./eval_worker
+    container_name: eval_worker
+    environment:
+      LANGFUSE_HOST: http://langfuse-web:3000
+      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-pk-lf-local-dev}
+      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-sk-lf-local-dev}
+      LITELLM_BASE_URL: http://litellm:4000/v1
+      LITELLM_API_KEY: ${LITELLM_MASTER_KEY:-sk-1234}
+      JUDGE_MODEL: judge-model
+      EVAL_SAMPLE_RATE: ${EVAL_SAMPLE_RATE:-0.2}
+      EVAL_POLL_INTERVAL_SECONDS: ${EVAL_POLL_INTERVAL_SECONDS:-60}
+      EVAL_LOOKBACK_MINUTES: ${EVAL_LOOKBACK_MINUTES:-60}
+      EVAL_ENABLE_RELEVANCY: ${EVAL_ENABLE_RELEVANCY:-true}
+    depends_on:
+      - litellm
+      - langfuse-web
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------- Langfuse
+  langfuse-web:
+    image: langfuse/langfuse:3
+    container_name: langfuse_web
+    depends_on:
+      - langfuse-postgres
+      - clickhouse
+      - redis
+      - minio
+    ports:
+      - "3000:3000"
+    environment: &langfuse-env
+      DATABASE_URL: postgresql://postgres:postgres@langfuse-postgres:5432/postgres
+      SALT: ${LANGFUSE_SALT:-mysalt-change-in-production}
+      ENCRYPTION_KEY: ${LANGFUSE_ENCRYPTION_KEY:-0000000000000000000000000000000000000000000000000000000000000000}
+      NEXTAUTH_SECRET: ${LANGFUSE_NEXTAUTH_SECRET:-mysecret-change-in-production}
+      NEXTAUTH_URL: http://localhost:3000
+      CLICKHOUSE_MIGRATION_URL: clickhouse://clickhouse:9000
+      CLICKHOUSE_URL: http://clickhouse:8123
+      CLICKHOUSE_USER: clickhouse
+      CLICKHOUSE_PASSWORD: clickhouse
+      CLICKHOUSE_CLUSTER_ENABLED: "false"
+      LANGFUSE_S3_EVENT_UPLOAD_BUCKET: langfuse
+      LANGFUSE_S3_EVENT_UPLOAD_REGION: auto
+      LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID: minio
+      LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY: miniosecret
+      LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT: http://minio:9000
+      LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE: "true"
+      LANGFUSE_S3_EVENT_UPLOAD_PREFIX: events/
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_AUTH: myredissecret
+      TELEMETRY_ENABLED: "false"
+      # Headless init: org/project/user/API keys exist on first boot, so
+      # LiteLLM and the eval worker can talk to Langfuse with no UI steps.
+      LANGFUSE_INIT_ORG_ID: local-org
+      LANGFUSE_INIT_PROJECT_ID: local-project
+      LANGFUSE_INIT_PROJECT_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-pk-lf-local-dev}
+      LANGFUSE_INIT_PROJECT_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-sk-lf-local-dev}
+      LANGFUSE_INIT_USER_EMAIL: ${LANGFUSE_INIT_USER_EMAIL:-admin@example.com}
+      LANGFUSE_INIT_USER_NAME: ${LANGFUSE_INIT_USER_NAME:-Admin}
+      LANGFUSE_INIT_USER_PASSWORD: ${LANGFUSE_INIT_USER_PASSWORD:-changeme123}
+    restart: unless-stopped
+
+  langfuse-worker:
+    image: langfuse/langfuse-worker:3
+    container_name: langfuse_worker
+    depends_on:
+      - langfuse-postgres
+      - clickhouse
+      - redis
+      - minio
+    environment: *langfuse-env
+    restart: unless-stopped
+
+  langfuse-postgres:
+    image: postgres:16
+    container_name: langfuse_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - langfuse_pg_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.8
+    container_name: langfuse_clickhouse
+    user: "101:101"
+    environment:
+      CLICKHOUSE_DB: default
+      CLICKHOUSE_USER: clickhouse
+      CLICKHOUSE_PASSWORD: clickhouse
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - clickhouse_logs:/var/log/clickhouse-server
+    restart: unless-stopped
+
+  redis:
+    image: redis:7
+    container_name: langfuse_redis
+    command: ["redis-server", "--requirepass", "myredissecret"]
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio:latest
+    container_name: langfuse_minio
+    entrypoint: sh
+    command: -c 'mkdir -p /data/langfuse && minio server --address ":9000" --console-address ":9001" /data'
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: miniosecret
+    volumes:
+      - minio_data:/data
+    restart: unless-stopped
+
+volumes:
+  litellm_pg_data:
+  langfuse_pg_data:
+  clickhouse_data:
+  clickhouse_logs:
+  minio_data:

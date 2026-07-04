@@ -1,0 +1,16 @@
+# LiteLLM config used by the golden-evals CI job (real models via Groq).
+# Mirrors production model naming: rag-model = generation, judge-model = judge.
+model_list:
+  - model_name: rag-model
+    litellm_params:
+      model: groq/llama-3.1-8b-instant
+      api_key: os.environ/GROQ_API_KEY
+
+  - model_name: judge-model
+    litellm_params:
+      model: groq/openai/gpt-oss-20b
+      api_key: os.environ/GROQ_API_KEY
+      reasoning_effort: "low"
+
+general_settings:
+  master_key: sk-1234

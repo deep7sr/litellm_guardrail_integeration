@@ -1,0 +1,20 @@
+# LiteLLM config used ONLY by the local end-to-end pipeline test.
+# Models point at the deterministic mock server (tests/mock_llm_server.py).
+model_list:
+  - model_name: rag-model
+    litellm_params:
+      model: openai/mock-generator
+      api_base: http://127.0.0.1:9001/v1
+      api_key: mock-key
+
+  - model_name: judge-model
+    litellm_params:
+      model: openai/mock-judge
+      api_base: http://127.0.0.1:9001/v1
+      api_key: mock-key
+
+litellm_settings:
+  success_callback: ["langfuse"]
+
+general_settings:
+  master_key: sk-1234

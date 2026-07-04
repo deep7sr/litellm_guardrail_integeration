@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.env
+.deepeval/
+.deepeval_telemetry.txt
+.pytest_cache/
+venv*/
+*.log

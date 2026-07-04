@@ -1,0 +1,28 @@
+# Production LiteLLM proxy config: models + RAGAS guardrail + Langfuse capture.
+model_list:
+  - model_name: groq-llama-3.1-8b
+    litellm_params:
+      model: groq/llama-3.1-8b-instant
+      api_key: os.environ/GROQ_API_KEY
+
+  - model_name: judge-model
+    litellm_params:
+      model: groq/openai/gpt-oss-20b
+      api_key: os.environ/GROQ_API_KEY
+      reasoning_effort: "low"
+
+litellm_settings:
+  # Ship every request/response to Langfuse asynchronously (the eval capture
+  # layer). Requires LANGFUSE_PUBLIC_KEY / LANGFUSE_SECRET_KEY / LANGFUSE_HOST.
+  success_callback: ["langfuse"]
+  failure_callback: ["langfuse"]
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+
+guardrails:
+  - guardrail_name: "ragas-faithfulness"
+    litellm_params:
+      guardrail: faithfulness_guardrail_ragas.RagasFaithfulnessGuardrail
+      mode: "post_call"
+      default_on: true
