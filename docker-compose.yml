@@ -12,6 +12,11 @@ services:
       - GROQ_API_KEY=${GROQ_API_KEY}
       - LITELLM_MASTER_KEY=${LITELLM_MASTER_KEY:-sk-1234}
       - DATABASE_URL=postgresql://llmproxy:dbpassword9090@db:5432/litellm
+      # RAGAS imports GitPython internally (for its experiment-tracking
+      # feature, which we don't use); this image has no `git` binary, so
+      # GitPython's own initialization check must be silenced or `import
+      # ragas` fails entirely. See https://github.com/gitpython-developers/GitPython
+      - GIT_PYTHON_REFRESH=quiet
       # Guardrail hook settings
       - PROXY_BASE_URL=http://localhost:4000/v1
       - JUDGE_MODEL=judge-model
