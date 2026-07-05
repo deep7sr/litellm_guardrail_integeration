@@ -12,9 +12,9 @@ logic runs inside this LiteLLM process — no separate scoring service.
   2. Scores the answer with RAGAS Faithfulness against that context, judged
      by JUDGE_MODEL (reached back through this same proxy).
   3. Applies the verdict per the configured fail mode:
-       block (default) — raise a structured 400 error back to the caller
-       retry           — regenerate with corrective feedback up to
+       retry (default) — regenerate with corrective feedback up to
                          RAGAS_MAX_RETRIES, then serve FALLBACK_TEXT
+       block           — raise a structured 400 error back to the caller
   4. Logs every scoring attempt to Postgres (ragas_events) for the dashboard.
 
 Integration contract (see docs/INTEGRATION.md): RAG apps must send
@@ -50,7 +50,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 
 PASS_THRESHOLD = float(os.environ.get("RAGAS_PASS_THRESHOLD", "0.7"))
 MAX_RETRIES = int(os.environ.get("RAGAS_MAX_RETRIES", "3"))
-DEFAULT_ON_FAIL = os.environ.get("RAGAS_ON_FAIL", "block")  # "block" | "retry"
+DEFAULT_ON_FAIL = os.environ.get("RAGAS_ON_FAIL", "retry")  # "retry" | "block"
 JUDGE_MODEL = os.environ.get("JUDGE_MODEL", "judge-model")
 PROXY_BASE_URL = os.environ.get("PROXY_BASE_URL", "http://localhost:4000/v1")
 

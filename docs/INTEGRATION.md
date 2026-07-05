@@ -12,22 +12,42 @@ context**. It will not guess this from your prompt — you tell it explicitly.
 
 ## The fastest way: use the helper
 
+By default the proxy retries internally on your behalf (see "Options" below),
+so most apps don't need to handle anything special — a low-scoring answer is
+either silently corrected or replaced with a safe fallback message before it
+ever reaches you:
+
 ```python
 from openai import OpenAI
-from company_llm import guarded_completion, GuardrailBlockedError
+from company_llm import guarded_completion
 
 client = OpenAI(base_url="<proxy URL>/v1", api_key="<your team's key>")
 
 chunks = my_vector_store.search(user_question)      # you already do this
 messages = build_my_prompt(chunks, user_question)   # and this
 
+resp = guarded_completion(
+    client,
+    model="groq-llama-3.1-8b",
+    messages=messages,
+    context=chunks,          # <- new: the chunks you retrieved
+    question=user_question,  # <- new: the user's original question
+)
+answer = resp.choices[0].message.content
+```
+
+If you'd rather fail fast and handle the error yourself (e.g. to show your
+own retry UI) instead of waiting on the proxy's internal retries, opt into
+`on_fail="block"`:
+
+```python
+from company_llm import guarded_completion, GuardrailBlockedError
+
 try:
     resp = guarded_completion(
-        client,
-        model="groq-llama-3.1-8b",
-        messages=messages,
-        context=chunks,          # <- new: the chunks you retrieved
-        question=user_question,  # <- new: the user's original question
+        client, model="groq-llama-3.1-8b", messages=messages,
+        context=chunks, question=user_question,
+        on_fail="block",
     )
     answer = resp.choices[0].message.content
 except GuardrailBlockedError as e:
@@ -62,8 +82,8 @@ labels away when you flatten everything into a prompt.
 
 | Parameter | Default | Meaning |
 |---|---|---|
-| `on_fail="block"` | `block` | Fail fast with `GuardrailBlockedError` (recommended). |
-| `on_fail="retry"` | — | Proxy silently regenerates with corrective feedback (up to 3×) before giving up. Adds latency; opt in only if you prefer waiting over handling an error. |
+| `on_fail="retry"` | `retry` | Proxy silently regenerates with corrective feedback (up to 3×) before giving up and serving a fallback message. Adds latency on a failing request. |
+| `on_fail="block"` | — | Fail fast with `GuardrailBlockedError` instead of retrying. Opt in if you'd rather handle the error yourself than wait. |
 | `threshold=0.7` | `0.7` | Minimum fraction of answer claims that must be supported by your context. Raise for high-stakes apps. |
 
 ## Raw format (if you can't use the helper)

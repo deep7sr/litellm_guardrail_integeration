@@ -72,18 +72,19 @@ Developer-facing docs:
 - `docs/WHY_CONTEXT_CONTRACT.md` — full justification for the contract, with
   our incident evidence and industry citations (AWS/Azure/NVIDIA/OWASP).
 
-## Fail behavior: `block` vs `retry`
+## Fail behavior: `retry` vs `block`
 
-Configured globally via `RAGAS_ON_FAIL` (default `block`), overridable
+Configured globally via `RAGAS_ON_FAIL` (default `retry`), overridable
 per-request via `guardrail_on_fail`:
 
+- **`retry`** (default) — regenerate with corrective feedback and re-score, up
+  to `RAGAS_MAX_RETRIES` times (default 3); if still failing after all
+  retries, a fixed fallback message is served instead of the low-scoring
+  answer. Better end-user experience, at the cost of added latency on a
+  failing request (up to `RAGAS_MAX_RETRIES` extra generations + scorings).
 - **`block`** — score below threshold ⇒ the request fails immediately with a
   structured 400 error (`{"error": ..., "score": ..., "threshold": ...}`).
   Cheap, fast, predictable; the calling app decides how to present it.
-- **`retry`** — regenerate with corrective feedback and re-score, up to
-  `RAGAS_MAX_RETRIES` times; if still failing, a fixed fallback message is
-  served instead of the low-scoring answer. Better UX when it works, but
-  worst case adds several generations + scorings of latency.
 
 ## Configuration
 
@@ -92,7 +93,7 @@ Environment variables on the `litellm` service (see `docker-compose.yml`):
 | Variable | Default | Meaning |
 |---|---|---|
 | `RAGAS_PASS_THRESHOLD` | `0.7` | Minimum faithfulness score to pass. |
-| `RAGAS_ON_FAIL` | `block` | Default fail behavior (`block`/`retry`). |
+| `RAGAS_ON_FAIL` | `retry` | Default fail behavior (`retry`/`block`). |
 | `RAGAS_MAX_RETRIES` | `3` | Retry budget when in `retry` mode. |
 | `JUDGE_MODEL` | `judge-model` | Model-list name of the judge; guardrail skips scoring its traffic (prevents recursion). |
 | `PROXY_BASE_URL` | `http://localhost:4000/v1` | How the guardrail calls back into this same proxy for judge calls and regeneration. |

@@ -22,7 +22,7 @@ services:
       - JUDGE_MODEL=judge-model
       - RAGAS_PASS_THRESHOLD=0.7
       - RAGAS_MAX_RETRIES=3
-      - RAGAS_ON_FAIL=block   # "block" (fail fast) or "retry" (regenerate)
+      - RAGAS_ON_FAIL=retry   # "retry" (regenerate, default) or "block" (fail fast)
     depends_on:
       - db
     restart: unless-stopped
