@@ -1,7 +1,0 @@
-fastapi>=0.111
-uvicorn[standard]>=0.30
-ragas>=0.2.14
-openai>=1.50
-asyncpg>=0.29
-numpy>=1.26
-pydantic>=2.7

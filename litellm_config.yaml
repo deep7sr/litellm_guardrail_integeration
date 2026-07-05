@@ -4,7 +4,7 @@ model_list:
       model: groq/llama-3.1-8b-instant
       api_key: os.environ/GROQ_API_KEY
 
-  # Judge model used by the scoring service (via this proxy). Swap the
+  # Judge model used by the in-process RAGAS guardrail (via this proxy). Swap the
   # underlying litellm_params to a self-hosted endpoint (e.g. vLLM/Ollama
   # serving an open-source model) without touching the guardrail code.
   - model_name: judge-model

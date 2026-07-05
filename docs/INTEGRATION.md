@@ -93,7 +93,7 @@ generation model never sees it.
 decomposition + verification by the judge model). In `retry` mode, failures
 add regeneration round-trips — that's why `block` is the default.
 
-**What if the scoring service is down?** The proxy fails open: your response
+**What if the judge model is unreachable?** The proxy fails open: your response
 is served unscored and the event is logged. Your app never hard-depends on
 the guardrail being up.
 

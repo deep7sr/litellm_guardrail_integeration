@@ -1,18 +1,23 @@
 """
-LiteLLM post-call faithfulness guardrail (thin client).
+LiteLLM post-call faithfulness guardrail (in-process RAGAS).
 
-All RAGAS/judge logic lives in the standalone scoring service; this hook only:
+Registered in litellm_config.yaml as a custom guardrail firing on
+async_post_call_success_hook (mode: post_call). All RAGAS + judge-model
+logic runs inside this LiteLLM process — no separate scoring service.
+
   1. Reads context + question from the explicit request contract
      (metadata.guardrail_context / metadata.guardrail_question) — it never
      infers context from message roles, which was a confirmed
      prompt-injection vulnerability.
-  2. POSTs {question, contexts, answer} to the scoring service.
+  2. Scores the answer with RAGAS Faithfulness against that context, judged
+     by JUDGE_MODEL (reached back through this same proxy).
   3. Applies the verdict per the configured fail mode:
        block (default) — raise a structured 400 error back to the caller
        retry           — regenerate with corrective feedback up to
                          RAGAS_MAX_RETRIES, then serve FALLBACK_TEXT
+  4. Logs every scoring attempt to Postgres (ragas_events) for the dashboard.
 
-Integration contract (see README): RAG apps must send
+Integration contract (see docs/INTEGRATION.md): RAG apps must send
   extra_body={"metadata": {
       "guardrail_context": ["chunk 1", "chunk 2", ...],   # required to be scored
       "guardrail_question": "...",                        # optional, recommended
@@ -24,13 +29,18 @@ with verdict="unscored") — the guardrail cannot judge groundedness without
 knowing what the grounding material was.
 """
 
+import asyncio
 import logging
 import os
 import uuid
 
-import httpx
+import asyncpg
+import numpy as np
 from fastapi import HTTPException
 from openai import AsyncOpenAI
+from ragas.dataset_schema import SingleTurnSample
+from ragas.llms import llm_factory
+from ragas.metrics import Faithfulness
 
 import litellm
 from litellm.integrations.custom_guardrail import CustomGuardrail
@@ -39,7 +49,6 @@ from litellm.proxy._types import UserAPIKeyAuth
 logger = logging.getLogger("faithfulness_guardrail")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
-SCORING_SERVICE_URL = os.environ.get("SCORING_SERVICE_URL", "http://scoring:8000")
 PASS_THRESHOLD = float(os.environ.get("RAGAS_PASS_THRESHOLD", "0.7"))
 MAX_RETRIES = int(os.environ.get("RAGAS_MAX_RETRIES", "3"))
 DEFAULT_ON_FAIL = os.environ.get("RAGAS_ON_FAIL", "block")  # "block" | "retry"
@@ -52,11 +61,68 @@ RETRY_FEEDBACK = (
 )
 FALLBACK_TEXT = "I wasn't able to find a fully supported answer to this in the available documents."
 
-_http = httpx.AsyncClient(timeout=120.0)
 _proxy_client = AsyncOpenAI(
     base_url=PROXY_BASE_URL,
     api_key=os.environ.get("LITELLM_MASTER_KEY", "sk-1234"),
 )
+_judge_llm = llm_factory(JUDGE_MODEL, client=_proxy_client)
+_scorer = Faithfulness(llm=_judge_llm)
+
+_db_pool: asyncpg.Pool | None = None
+_db_lock = asyncio.Lock()
+
+
+async def get_db_pool() -> asyncpg.Pool | None:
+    global _db_pool
+    if _db_pool is not None:
+        return _db_pool
+    async with _db_lock:
+        if _db_pool is not None:
+            return _db_pool
+        dsn = os.environ.get("DATABASE_URL")
+        if dsn and "?" in dsn:
+            dsn = dsn.split("?")[0]
+        if not dsn:
+            logger.warning("[ragas] DATABASE_URL not set, dashboard logging disabled")
+            return None
+        try:
+            pool = await asyncpg.create_pool(dsn, min_size=1, max_size=5)
+            async with pool.acquire() as conn:
+                await conn.execute("""
+                    CREATE TABLE IF NOT EXISTS ragas_events (
+                        id SERIAL PRIMARY KEY,
+                        req_id TEXT NOT NULL,
+                        created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+                        attempt INT NOT NULL,
+                        score DOUBLE PRECISION,
+                        verdict TEXT NOT NULL,
+                        target_model TEXT,
+                        question TEXT,
+                        answer_snippet TEXT
+                    )
+                """)
+            logger.info("[ragas] connected to dashboard DB, table ready")
+            _db_pool = pool
+        except Exception as e:
+            logger.warning(f"[ragas] could not connect to dashboard DB: {e}")
+            _db_pool = None
+    return _db_pool
+
+
+async def _log_event(req_id, attempt, score, verdict, target_model, question, answer):
+    pool = await get_db_pool()
+    if pool is None:
+        return
+    try:
+        async with pool.acquire() as conn:
+            await conn.execute(
+                """INSERT INTO ragas_events (req_id, attempt, score, verdict, target_model, question, answer_snippet)
+                   VALUES ($1, $2, $3, $4, $5, $6, $7)""",
+                req_id, attempt, score, verdict, target_model,
+                (question or "")[:500], (answer or "")[:500],
+            )
+    except Exception as e:
+        logger.warning(f"[ragas] req={req_id} failed to log event to DB: {e}")
 
 
 def _request_metadata(data: dict) -> dict:
@@ -87,30 +153,15 @@ def _fallback_question(messages: list) -> str:
 
 
 async def _score(question: str, contexts: list[str], answer: str) -> float | None:
+    sample = SingleTurnSample(user_input=question, response=answer, retrieved_contexts=contexts)
     try:
-        resp = await _http.post(
-            f"{SCORING_SERVICE_URL}/score",
-            json={"question": question, "contexts": contexts, "answer": answer},
-        )
-        resp.raise_for_status()
-        return float(resp.json()["score"])
+        raw = await _scorer.single_turn_ascore(sample)
     except Exception as e:
-        logger.warning(f"scoring service call failed: {e}")
+        logger.warning(f"[ragas] scoring failed: {e}")
         return None
-
-
-async def _log_event(req_id, attempt, score, verdict, target_model, question, answer):
-    try:
-        await _http.post(
-            f"{SCORING_SERVICE_URL}/events",
-            json={
-                "req_id": req_id, "attempt": attempt, "score": score,
-                "verdict": verdict, "target_model": target_model,
-                "question": question, "answer_snippet": answer,
-            },
-        )
-    except Exception as e:
-        logger.warning(f"req={req_id} failed to log event: {e}")
+    # RAGAS returns NaN when the answer contains no checkable claims
+    # (e.g. an honest "I don't know") — treat that as fully grounded.
+    return 1.0 if np.isnan(raw) else float(raw)
 
 
 class RagasFaithfulnessGuardrail(CustomGuardrail):
@@ -162,8 +213,8 @@ class RagasFaithfulnessGuardrail(CustomGuardrail):
 
         score = await _score(question, contexts, answer)
         if score is None:
-            # Fail open on scoring-infrastructure errors so the proxy never
-            # hard-depends on the scoring service being up.
+            # Fail open on judge/scoring errors so the proxy never hard-fails
+            # traffic because of a scoring-infrastructure problem.
             await _log_event(req_id, 0, None, "error", target_model, question, answer)
             return response
 
