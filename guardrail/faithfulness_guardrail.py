@@ -38,9 +38,8 @@ import asyncpg
 import numpy as np
 from fastapi import HTTPException
 from openai import AsyncOpenAI
-from ragas.dataset_schema import SingleTurnSample
 from ragas.llms import llm_factory
-from ragas.metrics import Faithfulness
+from ragas.metrics.collections import Faithfulness
 
 import litellm
 from litellm.integrations.custom_guardrail import CustomGuardrail
@@ -153,9 +152,11 @@ def _fallback_question(messages: list) -> str:
 
 
 async def _score(question: str, contexts: list[str], answer: str) -> float | None:
-    sample = SingleTurnSample(user_input=question, response=answer, retrieved_contexts=contexts)
     try:
-        raw = await _scorer.single_turn_ascore(sample)
+        result = await _scorer.ascore(
+            user_input=question, response=answer, retrieved_contexts=contexts,
+        )
+        raw = result.value
     except Exception as e:
         logger.warning(f"[ragas] scoring failed: {e}")
         return None
