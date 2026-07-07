@@ -20,8 +20,14 @@ def build_judge(cfg: EvalConfig):
         base_url=cfg.proxy_base_url,
         api_key=cfg.proxy_api_key,
         temperature=0,
+        # extra_body merges into the request JSON the proxy actually sees —
+        # a bare `metadata` kwarg is consumed client-side by the litellm SDK
+        # and never reaches the proxy (verified E2E), which would leave judge
+        # traffic untagged and samplable.
         generation_kwargs={
-            "metadata": {"tags": [cfg.internal_tag], "eval_internal": True},
+            "extra_body": {
+                "metadata": {"tags": [cfg.internal_tag], "eval_internal": True},
+            },
         },
     )
 

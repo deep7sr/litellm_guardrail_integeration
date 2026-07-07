@@ -1,3 +1,7 @@
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# build-time CA bundles (proxy/corporate TLS) — never commit
+e2e/ca-bundle.crt
+evals/ca-bundle.crt

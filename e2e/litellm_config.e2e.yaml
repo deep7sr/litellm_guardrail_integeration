@@ -1,0 +1,25 @@
+# E2E proxy config: same shape as production litellm_config.yaml, but every
+# model routes to the fake upstream (no provider keys needed) and the
+# faithfulness guardrail is disabled — this harness tests the Langfuse
+# tracing + async eval loop, not the guardrail (which has its own suite and
+# VM validation).
+
+model_list:
+  - model_name: groq-llama-3.1-8b
+    litellm_params:
+      model: openai/fake-app-model
+      api_base: http://fake-upstream:8000/v1
+      api_key: fake-key
+
+  - model_name: eval-judge
+    litellm_params:
+      model: openai/fake-judge
+      api_base: http://fake-upstream:8000/v1
+      api_key: fake-key
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+
+litellm_settings:
+  success_callback: ["langfuse"]
+  failure_callback: ["langfuse"]

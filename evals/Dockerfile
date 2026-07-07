@@ -2,8 +2,12 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-COPY requirements.txt /app/evals-requirements.txt
-RUN pip install --no-cache-dir -r /app/evals-requirements.txt
+# ca-bundle.crt is OPTIONAL (the * glob copies nothing when absent): drop a
+# CA bundle next to this Dockerfile when building behind TLS-intercepting
+# proxies (office VM corporate TLS, sandboxes). Never commit it.
+COPY requirements.txt ca-bundle.crt* /tmp/build/
+RUN if [ -f /tmp/build/ca-bundle.crt ]; then export PIP_CERT=/tmp/build/ca-bundle.crt; fi \
+    && pip install --no-cache-dir -r /tmp/build/requirements.txt
 
 COPY . /app/evals/
 

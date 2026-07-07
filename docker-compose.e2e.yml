@@ -1,0 +1,70 @@
+# E2E overlay: run the whole eval loop with zero external dependencies
+# (no Groq key, no Docker Hub access — images come via mirror.gcr.io and a
+# fake OpenAI-compatible upstream stands in for real models).
+#
+#   docker compose -f docker-compose.yml -f docker-compose.langfuse.yml \
+#       -f docker-compose.e2e.yml up -d --build \
+#       fake-upstream litellm langfuse-web langfuse-worker eval-runner
+#
+# Then: python3 e2e/run_e2e_check.py
+#
+# Prereq when Docker Hub is unreachable: tag the mirrored base image so the
+# `FROM python:3.11-slim` lines in the Dockerfiles resolve locally:
+#   docker pull mirror.gcr.io/library/python:3.11-slim
+#   docker tag mirror.gcr.io/library/python:3.11-slim python:3.11-slim
+
+services:
+  fake-upstream:
+    build:
+      context: ./e2e
+      dockerfile: fake-upstream.Dockerfile
+    container_name: fake-upstream
+    restart: unless-stopped
+
+  litellm:
+    image: litellm-e2e:latest
+    build:
+      context: ./e2e
+      dockerfile: litellm.Dockerfile
+      network: host   # pip via direct pypi access during build
+    volumes:
+      - ./e2e/litellm_config.e2e.yaml:/app/config.yaml
+    # Full env replacement (!override): the base file's DATABASE_URL must be
+    # truly ABSENT — LiteLLM rejects an empty-but-set value — and no LiteLLM
+    # Postgres runs in E2E (prisma isn't under test; auth uses master key).
+    environment: !override
+      - LITELLM_MASTER_KEY=${LITELLM_MASTER_KEY:-sk-1234}
+      - GROQ_API_KEY=unused-in-e2e
+      - LANGFUSE_HOST=http://langfuse-web:3000
+      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY:-pk-lf-dev-only}
+      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY:-sk-lf-dev-only}
+    depends_on: !override
+      - fake-upstream
+      - langfuse-web
+
+  eval-runner:
+    build:
+      network: host
+    environment:
+      # Deterministic fast loop for the E2E check
+      EVAL_PROXY_API_KEY: ${LITELLM_MASTER_KEY:-sk-1234}
+      EVAL_INTERVAL_SECONDS: "15"
+      EVAL_SAMPLE_RATE_RAG: "1.0"
+      EVAL_SAMPLE_RATE_NON_RAG: "1.0"
+      EVAL_LOOKBACK_MINUTES: "30"
+
+  # --- image substitutions: Docker Hub via mirror.gcr.io ---
+  db:
+    image: mirror.gcr.io/library/postgres:17
+  langfuse-web:
+    image: mirror.gcr.io/langfuse/langfuse:3
+  langfuse-worker:
+    image: mirror.gcr.io/langfuse/langfuse-worker:3
+  langfuse-postgres:
+    image: mirror.gcr.io/library/postgres:17
+  clickhouse:
+    image: mirror.gcr.io/clickhouse/clickhouse-server:24.12
+  langfuse-redis:
+    image: mirror.gcr.io/library/redis:7
+  langfuse-minio:
+    image: mirror.gcr.io/minio/minio:latest

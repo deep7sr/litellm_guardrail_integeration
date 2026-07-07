@@ -98,6 +98,37 @@ apps ──▶ LiteLLM proxy ──▶ frontier models
   `AnswerRelevancyMetric`; non-RAG traces get `AnswerRelevancyMetric` only
   (faithfulness needs retrieval context).
 
+## End-to-end test harness (`e2e/`)
+
+The whole loop can be exercised with **zero external dependencies** — no
+provider keys, no Docker Hub access — via a third compose overlay that
+swaps every model for a fake OpenAI-compatible upstream
+(`e2e/fake_upstream.py`: grounded answer for app calls, schema-conforming
+JSON for DeepEval judge calls):
+
+```bash
+# behind a registry-blocking proxy only: pull bases via mirror.gcr.io and
+#   docker tag mirror.gcr.io/library/python:3.11-slim python:3.11-slim
+# behind TLS-intercepting proxies only: drop the CA bundle for pip
+#   cp <ca-bundle> e2e/ca-bundle.crt evals/ca-bundle.crt   # gitignored
+
+docker compose -f docker-compose.yml -f docker-compose.langfuse.yml \
+    -f docker-compose.e2e.yml up -d --build \
+    fake-upstream litellm langfuse-web langfuse-worker eval-runner
+
+python3 e2e/run_e2e_check.py
+# [1/3] proxy answered ... [2/3] trace in Langfuse ... [3/3] eval scores
+# E2E PASSED: request -> proxy -> Langfuse trace -> deepeval scores
+```
+
+Verified in this harness (2026-07-07): RAG request → proxy → Langfuse
+trace; eval-runner scored it with real DeepEval metrics through
+`litellm_proxy/eval-judge`; both scores landed on the trace; the runner's
+own judge calls came back tagged `eval-internal` and were excluded
+(`skipped_internal: 7` in the cycle log); re-runs hit the idempotency
+guard (`already_scored`). The guardrail is intentionally NOT enabled in
+this overlay — it has its own suite and VM validation.
+
 ## Operational notes
 
 - **Never on the request path.** Langfuse callback failures are
