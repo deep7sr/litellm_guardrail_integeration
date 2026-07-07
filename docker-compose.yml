@@ -1,5 +1,8 @@
 services:
   litellm:
+    # Image must have RAGAS + asyncpg baked in (LiteLLM's official image
+    # does not ship them). See README "Runtime image" for how the
+    # production image was built.
     image: litellm-hhem:latest
     container_name: litellm
     ports:
@@ -7,29 +10,31 @@ services:
     volumes:
       - ./litellm_config.yaml:/app/config.yaml
       - ./guardrail/faithfulness_guardrail.py:/app/faithfulness_guardrail.py
+      - ./guardrail/faithfulness_guardrail_reasoning.py:/app/faithfulness_guardrail_reasoning.py
     command: ["--config", "/app/config.yaml", "--port", "4000"]
     environment:
       - GROQ_API_KEY=${GROQ_API_KEY}
       - LITELLM_MASTER_KEY=${LITELLM_MASTER_KEY:-sk-1234}
       - DATABASE_URL=postgresql://llmproxy:dbpassword9090@db:5432/litellm
-      # RAGAS imports GitPython internally (for its experiment-tracking
-      # feature, which we don't use); this image has no `git` binary, so
-      # GitPython's own initialization check must be silenced or `import
-      # ragas` fails entirely. See https://github.com/gitpython-developers/GitPython
+      # RAGAS imports GitPython internally (experiment tracking we don't
+      # use); without a git binary in the image, `import ragas` fails unless
+      # this check is silenced.
       - GIT_PYTHON_REFRESH=quiet
-      # Guardrail hook settings
+      # Guardrail settings (central config — no per-request overrides)
       - PROXY_BASE_URL=http://localhost:4000/v1
       - JUDGE_MODEL=judge-model
-      - RAGAS_PASS_THRESHOLD=0.7
-      - RAGAS_MAX_RETRIES=3
-      - RAGAS_ON_FAIL=retry   # "retry" (regenerate, default) or "block" (fail fast)
+      - GUARDRAIL_THRESHOLD=0.7
+      - MAX_ATTEMPTS=3
+      - GUARDRAIL_MODE=retry   # "retry" (regenerate) or "block" (fail fast)
+      - JUDGE_TIMEOUT_SECONDS=60
+      # - EVIDENCE_MARKER=--- Retrieved Evidence ---   # default; override only org-wide
     depends_on:
       - db
     restart: unless-stopped
 
   dashboard:
     build: ./dashboard
-    container_name: ragas-dashboard
+    container_name: faithfulness-dashboard
     ports:
       - "8080:8080"
     environment:

@@ -1,3 +1,13 @@
+ > **STATUS NOTE (superseded mechanism, principle unchanged).** After team
+ > review, the *delivery mechanism* changed: instead of a custom metadata
+ > field, apps now pass context via OpenAI's standard RAG message structure —
+ > an `assistant`-role message prefixed with `--- Retrieved Evidence ---`
+ > (see `docs/INTEGRATION.md`). The *principle* this document argues for is
+ > unchanged and still enforced: context is an explicit, app-controlled
+ > input, never inferred from (or trusted out of) user-typed text. The
+ > evidence below — our confirmed vulnerability and the industry survey —
+ > remains the justification for that principle.
+
 # Why the guardrail requires an explicit context contract
 
 *Justification document for the `guardrail_context` / `guardrail_question`

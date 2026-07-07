@@ -1,146 +1,174 @@
-# LiteLLM Faithfulness Guardrail (RAGAS-based)
+# LiteLLM Faithfulness Guardrails (RAGAS-based)
 
-A hallucination-detection guardrail for a central LiteLLM proxy. Every RAG
-application routed through the proxy gets its responses checked for
-groundedness against the retrieved context (RAGAS Faithfulness, scored by a
-judge model) before the response reaches the end user.
+Hallucination-detection guardrails for the central LiteLLM proxy. Every RAG
+application routed through the proxy gets its responses verified for
+groundedness against the retrieved context — scored claim-by-claim by a
+separate judge model (RAGAS Faithfulness) — before the response reaches the
+end user.
 
-RAGAS and the judge-model logic run **in-process inside the LiteLLM proxy**,
-as a custom guardrail class firing on the `post_call` hook — the same
-mechanism as the original POC, with two fixes layered in: an explicit
-context/question contract (instead of inferring context from message roles)
-and a configurable fail-fast/retry policy.
+**Branch purpose (`VM_faithfulness_Guardrail`):** the production line of the
+guardrail as deployed and validated on the office VM. Two variants ship here:
 
-```
-                       ┌───────────────────────────────┐
- RAG app ── request ──►│        LiteLLM proxy          │──► target model (Groq/…)
- (sends context +      │  ┌─────────────────────────┐  │
-  question in          │  │ RagasFaithfulnessGuardrail│  │──► judge model (via this
-  metadata)             │  │ (post_call hook, in-proc) │  │    same proxy)
-                        │  └───────────┬─────────────┘  │
-                        └──────────────┼─────────────────┘
-                                       │ events
-                                 ┌─────▼─────┐        ┌───────────┐
-                                 │ Postgres  │◄───────┤ Dashboard │
-                                 └───────────┘        │  (:8080)  │
-                                                       └───────────┘
-```
+| File | Class | What it adds |
+|---|---|---|
+| `guardrail/faithfulness_guardrail.py` | `FaithfulnessGuardrail` | v1 — detection + retry/block enforcement |
+| `guardrail/faithfulness_guardrail_reasoning.py` | `FaithfulnessReasoningGuardrail` | v2 — v1 plus a judge-written explanation of WHY a failed answer was blocked/replaced (returned to the caller, used to sharpen retry feedback, logged for the dashboard) |
 
-## Components
+v2 subclasses v1 — same detection and enforcement, one extension point
+(`_failure_reason`). **Enable exactly one of them** in the LiteLLM config;
+both fire on `post_call`, so enabling both double-scores every request.
 
-| Service     | What it does |
-|-------------|--------------|
-| `litellm`   | The gateway, running the `RagasFaithfulnessGuardrail` post-call hook (`guardrail/faithfulness_guardrail.py`) in-process — extracts the contract fields, scores with RAGAS, enforces the verdict, logs to Postgres. Uses the `litellm-hhem:latest` image, which has RAGAS and its dependencies pre-installed (LiteLLM's `custom_code` guardrail type sandboxes `import`, so a full custom-class-in-a-file needs a real Python environment with these libraries available). |
-| `dashboard` | Auto-refreshing view of pass/block/retry/unscored rates and recent events (testing/demo use). |
-| `db`        | Postgres — LiteLLM's own state plus the `ragas_events` table. |
+---
 
-## The integration contract (important)
+## The contract: standard OpenAI RAG message structure (no metadata)
 
-The guardrail does **not** infer context from message roles. Inferring
-context from the `messages` array is unsafe (a user can phrase fabricated
-claims as "established context" inside their own message and the guardrail
-would validate the fabrication against itself — a confirmed vulnerability in
-an earlier version) and unreliable (apps pack context into system messages,
-user messages, or single blended strings — no heuristic covers all of them).
-
-Instead, RAG apps **must pass the retrieved context and originating question
-explicitly** via request metadata:
+The guardrail is transparent to developers. There is **no metadata field, no
+SDK, no custom parameter** — apps format requests the standard OpenAI way:
 
 ```python
-client.chat.completions.create(
-    model="groq-llama-3.1-8b",
-    messages=[...],                     # prompt however you like
-    extra_body={"metadata": {
-        "guardrail_context": ["chunk 1", "chunk 2"],  # required for scoring
-        "guardrail_question": "the user's question",  # recommended
-        "guardrail_on_fail": "block" | "retry",       # optional override
-        "guardrail_threshold": 0.7,                   # optional override
-    }},
-)
+context_str = "--- Retrieved Evidence ---\n" + "\n\n".join(retrieved_chunks)
+
+messages = [
+    {"role": "system",    "content": "You are a factual assistant. Use ONLY the retrieved context..."},
+    {"role": "assistant", "content": context_str},   # retrieved context
+    {"role": "user",      "content": user_question}, # the question
+]
 ```
 
-Requests **without** `guardrail_context` pass through unscored and are logged
-with verdict `unscored`, so unguarded traffic is visible on the dashboard and
-can be chased down per team.
+The guardrail reads:
+- **Context** = the last `assistant`-role message carrying the
+  `--- Retrieved Evidence ---` marker (the marker is OpenAI's own documented
+  context format, not something we invented). The marker is what
+  distinguishes injected context from prior model answers in multi-turn
+  conversations — both are `assistant`-role, so role alone can't.
+- **Question** = the last `user`-role message.
 
-See `examples/rag_client_example.py` for a raw-format client, or use the
-internal helper `sdk/company_llm.py` (`guarded_completion`), which builds the
-metadata and converts guardrail blocks into a typed `GuardrailBlockedError`.
+**Security invariant:** context is only ever read from `assistant`-role
+messages. A user typing the marker into their own message cannot inject
+fabricated context — validated by test and live on the VM.
 
-Developer-facing docs:
-- `docs/INTEGRATION.md` — the one-pager to hand to application teams.
-- `docs/WHY_CONTEXT_CONTRACT.md` — full justification for the contract, with
-  our incident evidence and industry citations (AWS/Azure/NVIDIA/OWASP).
+Requests with no marked evidence message pass through **unscored** (logged,
+never blocked) — non-RAG apps need to do nothing and are never broken.
 
-## Fail behavior: `retry` vs `block`
+> Historical note: an earlier iteration used an explicit
+> `metadata.guardrail_context` contract. That mechanism was removed after
+> team review in favor of the message structure above (zero developer
+> friction). The security principle — context is app-controlled, never
+> inferred from or trusted out of user text — is unchanged; see
+> `docs/WHY_CONTEXT_CONTRACT.md` for the original evidence and industry
+> survey behind it.
 
-Configured globally via `RAGAS_ON_FAIL` (default `retry`), overridable
-per-request via `guardrail_on_fail`:
+## Enforcement flow
 
-- **`retry`** (default) — regenerate with corrective feedback and re-score, up
-  to `RAGAS_MAX_RETRIES` times (default 3); if still failing after all
-  retries, a fixed fallback message is served instead of the low-scoring
-  answer. Better end-user experience, at the cost of added latency on a
-  failing request (up to `RAGAS_MAX_RETRIES` extra generations + scorings).
-- **`block`** — score below threshold ⇒ the request fails immediately with a
-  structured 400 error (`{"error": ..., "score": ..., "threshold": ...}`).
-  Cheap, fast, predictable; the calling app decides how to present it.
+```
+answer generated
+  → strip <think>…</think> reasoning trace (some models emit it)
+  → extract context/question from messages
+  → no marked context?  → serve unscored (logged)
+  → RAGAS Faithfulness score via JUDGE_MODEL (bounded by JUDGE_TIMEOUT_SECONDS)
+  → score ≥ threshold?  → serve answer                    [passed]
+  → GUARDRAIL_MODE=block → structured 400 w/ score (+reason in v2)  [blocked]
+  → GUARDRAIL_MODE=retry → regenerate with corrective feedback,
+       re-score, up to MAX_ATTEMPTS                        [retrying…]
+     → recovers → serve corrected answer                   [passed]
+     → still failing → serve fixed fallback text (+reason in v2)  [exhausted]
+```
 
-## Configuration
+Recursion guards (both load-bearing — the judge's scoring calls and our own
+regeneration calls re-enter this same proxy):
+1. requests whose `model == JUDGE_MODEL` are never scored;
+2. requests tagged `ragas_internal_retry` (our own regenerations) are never
+   scored.
 
-Environment variables on the `litellm` service (see `docker-compose.yml`):
+## Configuration (central, env vars — no per-request overrides)
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `RAGAS_PASS_THRESHOLD` | `0.7` | Minimum faithfulness score to pass. |
-| `RAGAS_ON_FAIL` | `retry` | Default fail behavior (`retry`/`block`). |
-| `RAGAS_MAX_RETRIES` | `3` | Retry budget when in `retry` mode. |
-| `JUDGE_MODEL` | `judge-model` | Model-list name of the judge; guardrail skips scoring its traffic (prevents recursion). |
-| `PROXY_BASE_URL` | `http://localhost:4000/v1` | How the guardrail calls back into this same proxy for judge calls and regeneration. |
+| `GUARDRAIL_THRESHOLD` | `0.7` | Minimum faithfulness score (fraction of answer claims supported by context). |
+| `GUARDRAIL_MODE` | `retry` | `retry` (regenerate then fallback) or `block` (fail fast with 400). |
+| `MAX_ATTEMPTS` | `3` | Regeneration budget in retry mode. |
+| `JUDGE_MODEL` | `judge-model` | Model-list name of the judge; its traffic is never re-scored. |
+| `JUDGE_TIMEOUT_SECONDS` | `60` | Bound on each scoring/reason step — a hung judge cannot stall the proxy. |
+| `PROXY_BASE_URL` | `http://localhost:4000/v1` | How the guardrail calls back into this proxy (judge + regenerations). |
+| `EVIDENCE_MARKER` | `--- Retrieved Evidence ---` | Context marker; change only org-wide, in lockstep with app templates. |
+| `DATABASE_URL` | — | Postgres for the `faithfulness_events` audit table (optional; logging disabled if unset). |
+| `GIT_PYTHON_REFRESH` | set to `quiet` | Required: RAGAS transitively imports GitPython, which errors without a git binary. |
 
-The judge is defined once in `litellm_config.yaml` as `judge-model`; to move
-to a self-hosted judge later, only that model entry changes — the guardrail
-code is untouched.
+## Observability
 
-## Running
+Every attempt is logged to Postgres (`faithfulness_events`): request id,
+attempt number, score, verdict, model, raw user message, scoring question,
+retrieved context, generated answer, and (v2) the judge's failure reason.
+The `dashboard/` service renders it live at `:8080`.
 
-```bash
-export GROQ_API_KEY=...          # current POC judge + target model host
-docker compose up --build
-```
+Verdicts: `passed` · `blocked` · `retrying` · `exhausted` ·
+`unscored` (no marked context — expected for non-RAG traffic) ·
+`error` (scoring infrastructure failure — **fails open by design**; flip in
+`_score`-error handling if policy requires fail-closed).
 
-- Proxy: `http://localhost:4000` (master key from `LITELLM_MASTER_KEY`, default `sk-1234`)
-- Dashboard: `http://localhost:8080`
+## Test status — read this before deploying
 
-## Event verdicts
+| What | How verified | Status |
+|---|---|---|
+| Context extraction, marker rules, injection safety, multi-turn disambiguation | 23-case pytest suite (`tests/`), real `litellm.ModelResponse` objects, mocked judge | ✅ passing |
+| Enforcement paths: pass / block / retry-correct / exhaustion-fallback / fail-open / both recursion guards | same suite | ✅ passing |
+| v2 reasoning: reason in 400 detail, reason in fallback, specific retry feedback, graceful degradation when reason step fails | same suite | ✅ passing |
+| Live end-to-end scoring (real judge, real Groq models) — v1 behavior | validated on the office VM across three domains (drone/SaaS/insurance): clean pass 1.000, injection neutralized, forced hallucination 0.000→caught→self-corrected, multi-turn marker disambiguation, unscored passthrough | ✅ done (pre-merge form of this code) |
+| Live end-to-end — this exact merged code + v2 reasoning variant | **pending — run `scripts/demo_test.py` on the VM after deploying this branch** | ⚠️ required before production cutover |
+| Threshold calibration against labeled data | not done — `0.7` is empirical | ⚠️ open |
 
-Each scoring attempt is logged to `ragas_events`:
+Run the unit tests: `pip install pytest pytest-asyncio && python -m pytest tests/`
 
-| Verdict | Meaning |
-|---|---|
-| `passed` | Score ≥ threshold, response served. |
-| `blocked` | `block` mode, score below threshold, 400 returned. |
-| `retrying` | `retry` mode, attempt failed, regeneration issued. |
-| `exhausted` | `retry` mode, retries used up, fallback text served. |
-| `unscored` | Caller didn't supply `guardrail_context`. |
-| `error` | Judge/scoring failure (fails open — response served unscored). |
+## Deploying on the VM
 
-## Design notes
+1. Copy both `guardrail/*.py` files into the directory mounted at
+   `/app/litellm` (or adjust the compose mounts as in `docker-compose.yml`).
+2. In the LiteLLM config's `guardrails:` section, register **one** class —
+   see `litellm_config.yaml` for both stanzas (v2 enabled by default there).
+3. Ensure the runtime image has `ragas==0.4.3`, `langchain-community==0.4.1`,
+   `asyncpg` installed (the production image was built by layering these on
+   the LiteLLM image actually running against the existing database — do not
+   change LiteLLM versions casually; mismatched Prisma migrations against a
+   shared Postgres was a real failure we hit).
+4. Restart the litellm service, confirm registration via
+   `GET /guardrails/list`, then run `scripts/demo_test.py`.
 
-- **Fail-open on judge/scoring errors**: if the judge model call fails, the
-  proxy serves the response unscored (logged as `error`) rather than taking
-  all traffic down with it. Flip this deliberately if policy requires
-  fail-closed.
-- **Recursion guards**: the guardrail skips (a) any request whose model is the
-  judge, and (b) any request tagged `ragas_internal_retry` (its own
-  regeneration calls). Preserve both in any refactor.
-- **NaN scores** from RAGAS (answers with no checkable claims, e.g. honest
-  "I don't know") are treated as fully grounded (1.0).
-- **In-process vs. standalone service**: RAGAS runs inside the LiteLLM
-  process today. If scoring load ever needs independent scaling, or the
-  proxy image needs to shed RAGAS's dependencies, this can be extracted into
-  a separate service later without changing the request contract — only
-  `guardrail/faithfulness_guardrail.py`'s internals would move.
+## Progress log
 
-The original project brief, including the full history and open problems this
-design addresses, is in `ragas-guardrail-project-brief.md`.
+- **v0 (POC)** — metadata-based contract, in-process RAGAS, retry loop,
+  recursion guards; validated on a laptop stack.
+- **Fixes along the way** — RAGAS 0.4 API migration
+  (`ragas.metrics.collections.Faithfulness`, `ascore(...)→MetricResult`),
+  GitPython import crash (`GIT_PYTHON_REFRESH=quiet`), corporate-TLS
+  workarounds, LiteLLM image/DB-migration version pinning, reasoning-model
+  `<think>` leakage stripped from scoring and serving.
+- **Contract pivot** — after team review: metadata contract removed
+  entirely; OpenAI message structure with the evidence marker is the sole
+  mechanism. Validated live on the VM (single-turn, multi-turn, marker
+  injection).
+- **This branch** — production v1 + v2(reasoning), judge-call timeouts,
+  full event logging incl. raw user message and failure reason, dashboard,
+  23-case test suite, docs rewritten for the message-structure contract,
+  all metadata-era files removed.
+
+## Known limitations / next steps
+
+- **One VM smoke run required** for this exact merged code (see test matrix).
+- **Threshold is uncalibrated** — derive it from a labeled golden dataset
+  (an internal DeepEval golden-dataset harness likely already exists; use it).
+- **Fail-open on scoring errors** is a deliberate but unratified policy —
+  get an explicit fail-open vs. fail-closed decision for production.
+- **No streaming support** — guarded routes must be non-streaming.
+- **v2 cost**: one extra judge call per *failed* attempt (not per request).
+- **Internal tag is not authenticated** — a caller inside the org could set
+  `ragas_internal_retry` metadata to skip scoring; equivalent trust level to
+  simply omitting the evidence marker, but worth knowing.
+- **No alerting** — dashboard only; wire `error`/`unscored`/`exhausted`
+  rates into real alerting before broad rollout.
+- **Data retention** — full user messages/context/answers are logged to
+  Postgres indefinitely; set a retention/redaction policy (GDPR/EU-AI-Act
+  traffic already flows through this proxy).
+- **Judge is Groq-hosted** — self-host for rate-limit and residency reasons.
+
+The original project brief (full history and the problems this design
+answers) is `ragas-guardrail-project-brief.md`.

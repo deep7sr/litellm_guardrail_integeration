@@ -1,121 +1,82 @@
 # Integrating your app with the LLM proxy (faithfulness guardrail)
 
-*The one-pager for application teams. Total integration effort: ~2 lines of code.*
+*The one-pager for application teams. If you already build RAG requests the
+standard OpenAI way, there is nothing extra to do.*
 
-All LLM traffic in the company routes through the central LiteLLM proxy. If
-your application is a **RAG app** (it retrieves documents and asks the model
-to answer from them), the proxy will automatically verify that every answer
-is actually grounded in your retrieved documents before your users see it.
+All LLM traffic routes through the central LiteLLM proxy. If your app is a
+**RAG app** (it retrieves documents and asks the model to answer from them),
+the proxy automatically verifies every answer is grounded in your retrieved
+documents before your users see it.
 
-For that to work, the proxy needs to know **which text is your retrieved
-context**. It will not guess this from your prompt — you tell it explicitly.
+## The contract: standard OpenAI RAG message structure
 
-## The fastest way: use the helper
-
-By default the proxy retries internally on your behalf (see "Options" below),
-so most apps don't need to handle anything special — a low-scoring answer is
-either silently corrected or replaced with a safe fallback message before it
-ever reaches you:
+The guardrail reads context and question straight from your `messages` array
+— **no metadata, no custom fields, no SDK**:
 
 ```python
-from openai import OpenAI
-from company_llm import guarded_completion
+context_str = "--- Retrieved Evidence ---\n" + "\n\n".join(retrieved_chunks)
 
-client = OpenAI(base_url="<proxy URL>/v1", api_key="<your team's key>")
-
-chunks = my_vector_store.search(user_question)      # you already do this
-messages = build_my_prompt(chunks, user_question)   # and this
-
-resp = guarded_completion(
-    client,
-    model="groq-llama-3.1-8b",
-    messages=messages,
-    context=chunks,          # <- new: the chunks you retrieved
-    question=user_question,  # <- new: the user's original question
-)
-answer = resp.choices[0].message.content
-```
-
-If you'd rather fail fast and handle the error yourself (e.g. to show your
-own retry UI) instead of waiting on the proxy's internal retries, opt into
-`on_fail="block"`:
-
-```python
-from company_llm import guarded_completion, GuardrailBlockedError
-
-try:
-    resp = guarded_completion(
-        client, model="groq-llama-3.1-8b", messages=messages,
-        context=chunks, question=user_question,
-        on_fail="block",
-    )
-    answer = resp.choices[0].message.content
-except GuardrailBlockedError as e:
-    answer = "I couldn't find a well-supported answer in the documentation."
-```
-
-That's the whole integration. `context` and `question` are variables your
-code already has in hand — the contract just asks you not to throw the
-labels away when you flatten everything into a prompt.
-
-## What you get for it
-
-- Every response is scored 0.0–1.0 for groundedness (RAGAS Faithfulness,
-  judged claim-by-claim against *your* chunks) before it reaches your user.
-- Ungrounded answers never reach your user: by default the request fails
-  with a clean, catchable `GuardrailBlockedError` carrying the score.
-- Your app's pass/block rates appear on the central dashboard automatically.
-
-## Rules
-
-1. **`context` must contain ONLY text your backend retrieved** from your
-   document store. Never put user-typed text in it — user text is exactly
-   what the guardrail is checking *against* the context, and putting user
-   claims into `context` would let users validate their own fabrications.
-2. **`question` should be the user's original question**, even in multi-turn
-   chats where the latest message is "rephrase that" or "make it shorter."
-3. **Not a RAG app?** (plain chat, summarization of user-provided text,
-   codegen) — do nothing. Your traffic passes through unscored; that's
-   expected and correct.
-
-## Options
-
-| Parameter | Default | Meaning |
-|---|---|---|
-| `on_fail="retry"` | `retry` | Proxy silently regenerates with corrective feedback (up to 3×) before giving up and serving a fallback message. Adds latency on a failing request. |
-| `on_fail="block"` | — | Fail fast with `GuardrailBlockedError` instead of retrying. Opt in if you'd rather handle the error yourself than wait. |
-| `threshold=0.7` | `0.7` | Minimum fraction of answer claims that must be supported by your context. Raise for high-stakes apps. |
-
-## Raw format (if you can't use the helper)
-
-Any OpenAI-compatible client works — attach the metadata yourself:
-
-```python
 client.chat.completions.create(
-    model="...", messages=[...],
-    extra_body={"metadata": {
-        "guardrail_context": ["chunk 1", "chunk 2"],
-        "guardrail_question": "the user's question",
-    }},
+    model="...",
+    messages=[
+        {"role": "system",    "content": "You are a factual assistant. Use ONLY the retrieved context..."},
+        {"role": "assistant", "content": context_str},        # your retrieved chunks
+        {"role": "user",      "content": user_question},       # the question
+    ],
 )
 ```
 
-A blocked response is an HTTP 400 whose error detail includes
-`"guardrail": "ragas-faithfulness"`, the `score`, and the `threshold`.
+This is OpenAI's own documented RAG format. The guardrail identifies:
+
+| Part | Where it looks |
+|---|---|
+| **Context** | the last `assistant`-role message starting with `--- Retrieved Evidence ---` |
+| **Question** | the last `user`-role message |
+
+## The rules (only two)
+
+1. **The evidence marker line matters.** `--- Retrieved Evidence ---` at the
+   top of your context message is how the guardrail tells *injected context*
+   apart from *the model's previous answers* in multi-turn conversations
+   (both are `assistant`-role). Keep the marker exactly as shown.
+2. **Only your backend writes the evidence message.** Never place user-typed
+   text into it. (The guardrail also ignores the marker in `user`-role
+   messages, so end users cannot forge context — but don't rely on that as
+   an excuse to blur the line in your own code.)
+
+**Not a RAG app?** Do nothing. Requests without an evidence-marked message
+pass through completely unscored — logged as `unscored` on the dashboard,
+never blocked, never slowed by scoring.
+
+## What happens on failure
+
+Behavior is central proxy configuration (`GUARDRAIL_MODE`), not per-request:
+
+- **`retry`** (default) — the proxy regenerates the answer with corrective
+  feedback up to `MAX_ATTEMPTS` times; if it still fails, your app receives
+  a fixed safe fallback message instead of the ungrounded answer. With the
+  reasoning guardrail active, the fallback includes a short judge-written
+  explanation of what wasn't supported.
+- **`block`** — the request fails with a structured 400:
+  `{"error": ..., "guardrail": "faithfulness-guardrail", "score": 0.33,
+  "threshold": 0.7, "reason": "..."}` (reason present with the reasoning
+  variant).
+
+## Multi-turn conversations
+
+Follow the standard OpenAI pattern (append prior turns), and add a **fresh
+evidence message before each new user question** when you re-retrieve. The
+guardrail always scores against the *newest* marked evidence message.
 
 ## FAQ
 
-**Does this change my prompt or my retrieval?** No. Build your prompt
-exactly as before. The metadata is a *copy* of the chunks, out-of-band; the
-generation model never sees it.
+**Latency cost?** One scoring pass (judge model, claim-by-claim) after
+generation; failed answers add regeneration round-trips in retry mode.
+Scoring is bounded by a timeout — a slow judge cannot hang your request.
 
-**What's the latency cost?** One scoring pass after generation (a claim
-decomposition + verification by the judge model). In `retry` mode, failures
-add regeneration round-trips — that's why `block` is the default.
+**What if the judge/scoring infrastructure is down?** The proxy fails open:
+your response is served unscored and logged as `error`. Your app never
+hard-depends on the guardrail being up.
 
-**What if the judge model is unreachable?** The proxy fails open: your response
-is served unscored and the event is logged. Your app never hard-depends on
-the guardrail being up.
-
-**Streaming?** Guarded routes are currently non-streaming. If you need
-streaming on a RAG route, talk to the platform team first.
+**Streaming?** Guarded routes are currently non-streaming. Talk to the
+platform team if you need streaming on a RAG route.

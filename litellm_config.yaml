@@ -4,9 +4,9 @@ model_list:
       model: groq/llama-3.1-8b-instant
       api_key: os.environ/GROQ_API_KEY
 
-  # Judge model used by the in-process RAGAS guardrail (via this proxy). Swap the
-  # underlying litellm_params to a self-hosted endpoint (e.g. vLLM/Ollama
-  # serving an open-source model) without touching the guardrail code.
+  # Judge model used by the in-process RAGAS guardrail (via this proxy).
+  # Swap the underlying litellm_params to a self-hosted endpoint (e.g.
+  # vLLM/Ollama) without touching the guardrail code.
   - model_name: judge-model
     litellm_params:
       model: groq/openai/gpt-oss-20b
@@ -16,9 +16,21 @@ model_list:
 general_settings:
   master_key: os.environ/LITELLM_MASTER_KEY
 
+# IMPORTANT: enable exactly ONE of the two guardrails below — both fire on
+# post_call, so enabling both would double-score (and double-judge) every
+# request.
 guardrails:
-  - guardrail_name: "ragas-faithfulness"
+  # v1 — detection + retry/block, no user-facing explanation.
+  # - guardrail_name: "faithfulness-guardrail"
+  #   litellm_params:
+  #     guardrail: faithfulness_guardrail.FaithfulnessGuardrail
+  #     mode: "post_call"
+  #     default_on: true
+
+  # v2 — same as v1, plus the judge explains WHY a failed answer was
+  # blocked / replaced (returned to caller, used in retry feedback, logged).
+  - guardrail_name: "faithfulness-guardrail-reasoning"
     litellm_params:
-      guardrail: faithfulness_guardrail.RagasFaithfulnessGuardrail
+      guardrail: faithfulness_guardrail_reasoning.FaithfulnessReasoningGuardrail
       mode: "post_call"
       default_on: true
