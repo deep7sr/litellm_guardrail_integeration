@@ -1,0 +1,184 @@
+# Langfuse OSS (self-hosted, v3) + async eval runner — overlay file.
+#
+# Run TOGETHER with the base stack:
+#   docker compose -f docker-compose.yml -f docker-compose.langfuse.yml up -d
+#
+# Langfuse v3 needs its own Postgres, ClickHouse, Redis and an S3-compatible
+# store (MinIO here). Langfuse gets a DEDICATED Postgres on purpose — the
+# LiteLLM Postgres already carries Prisma migrations, and mixing two apps'
+# migrations in one database is a failure mode this project has hit before
+# (see README "Deploying on the VM").
+#
+# Secrets below have insecure defaults so the stack boots on a dev box.
+# For the VM / production, set every ${...} in .env — see .env.example and
+# docs/EVALS_SETUP.md.
+
+services:
+  langfuse-web:
+    image: docker.io/langfuse/langfuse:3
+    container_name: langfuse-web
+    ports:
+      - "3000:3000"
+    environment: &langfuse-env
+      DATABASE_URL: postgresql://langfuse:${LANGFUSE_PG_PASSWORD:-langfusepg}@langfuse-postgres:5432/langfuse
+      SALT: ${LANGFUSE_SALT:-insecure-dev-salt-change-me}
+      ENCRYPTION_KEY: ${LANGFUSE_ENCRYPTION_KEY:-0000000000000000000000000000000000000000000000000000000000000000} # openssl rand -hex 32
+      NEXTAUTH_SECRET: ${LANGFUSE_NEXTAUTH_SECRET:-insecure-dev-nextauth-secret}
+      NEXTAUTH_URL: ${LANGFUSE_NEXTAUTH_URL:-http://localhost:3000}
+      TELEMETRY_ENABLED: "false"
+      CLICKHOUSE_MIGRATION_URL: clickhouse://clickhouse:9000
+      CLICKHOUSE_URL: http://clickhouse:8123
+      CLICKHOUSE_USER: clickhouse
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-clickhousepw}
+      CLICKHOUSE_CLUSTER_ENABLED: "false"
+      REDIS_HOST: langfuse-redis
+      REDIS_PORT: "6379"
+      REDIS_AUTH: ${REDIS_AUTH:-redispw}
+      LANGFUSE_S3_EVENT_UPLOAD_BUCKET: langfuse
+      LANGFUSE_S3_EVENT_UPLOAD_REGION: auto
+      LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minio}
+      LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-miniosecret}
+      LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT: http://langfuse-minio:9000
+      LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE: "true"
+      LANGFUSE_S3_EVENT_UPLOAD_PREFIX: events/
+      LANGFUSE_S3_MEDIA_UPLOAD_BUCKET: langfuse
+      LANGFUSE_S3_MEDIA_UPLOAD_REGION: auto
+      LANGFUSE_S3_MEDIA_UPLOAD_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minio}
+      LANGFUSE_S3_MEDIA_UPLOAD_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-miniosecret}
+      LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: http://langfuse-minio:9000
+      LANGFUSE_S3_MEDIA_UPLOAD_FORCE_PATH_STYLE: "true"
+      LANGFUSE_S3_MEDIA_UPLOAD_PREFIX: media/
+      # Headless bootstrap: org, project, login user and the API keypair the
+      # proxy + eval runner use. Reproducible deploys, no clicking in the UI.
+      LANGFUSE_INIT_ORG_ID: org-main
+      LANGFUSE_INIT_PROJECT_ID: proxy-evals
+      LANGFUSE_INIT_PROJECT_NAME: LiteLLM Proxy Evals
+      LANGFUSE_INIT_PROJECT_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-pk-lf-dev-only}
+      LANGFUSE_INIT_PROJECT_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-sk-lf-dev-only}
+      LANGFUSE_INIT_USER_EMAIL: ${LANGFUSE_INIT_USER_EMAIL:-admin@example.com}
+      LANGFUSE_INIT_USER_NAME: ${LANGFUSE_INIT_USER_NAME:-Admin}
+      LANGFUSE_INIT_USER_PASSWORD: ${LANGFUSE_INIT_USER_PASSWORD:-changeme-langfuse}
+    depends_on:
+      langfuse-postgres:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+      langfuse-redis:
+        condition: service_healthy
+      langfuse-minio:
+        condition: service_started
+    restart: unless-stopped
+
+  langfuse-worker:
+    image: docker.io/langfuse/langfuse-worker:3
+    container_name: langfuse-worker
+    environment: *langfuse-env
+    depends_on:
+      langfuse-postgres:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+      langfuse-redis:
+        condition: service_healthy
+      langfuse-minio:
+        condition: service_started
+    restart: unless-stopped
+
+  langfuse-postgres:
+    image: postgres:17
+    container_name: langfuse-postgres
+    environment:
+      POSTGRES_DB: langfuse
+      POSTGRES_USER: langfuse
+      POSTGRES_PASSWORD: ${LANGFUSE_PG_PASSWORD:-langfusepg}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U langfuse -d langfuse"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - langfuse_pg_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  clickhouse:
+    image: docker.io/clickhouse/clickhouse-server:24.12
+    container_name: langfuse-clickhouse
+    user: "101:101"
+    environment:
+      CLICKHOUSE_DB: default
+      CLICKHOUSE_USER: clickhouse
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-clickhousepw}
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8123/ping || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - langfuse_clickhouse_data:/var/lib/clickhouse
+      - langfuse_clickhouse_logs:/var/log/clickhouse-server
+    restart: unless-stopped
+
+  langfuse-redis:
+    image: docker.io/redis:7
+    container_name: langfuse-redis
+    command: ["redis-server", "--requirepass", "${REDIS_AUTH:-redispw}", "--maxmemory-policy", "noeviction"]
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a ${REDIS_AUTH:-redispw} ping | grep PONG"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - langfuse_redis_data:/data
+    restart: unless-stopped
+
+  langfuse-minio:
+    image: docker.io/minio/minio:latest
+    container_name: langfuse-minio
+    entrypoint: sh
+    command: -c 'mkdir -p /data/langfuse && minio server --address ":9000" --console-address ":9001" /data'
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minio}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-miniosecret}
+    volumes:
+      - langfuse_minio_data:/data
+    restart: unless-stopped
+
+  # Async external eval pipeline: samples recent Langfuse traces, scores them
+  # with DeepEval (judge = open-source model via the LiteLLM proxy), pushes
+  # scores back to Langfuse. NEVER on the request path.
+  eval-runner:
+    build: ./evals
+    container_name: eval-runner
+    environment:
+      LANGFUSE_HOST: http://langfuse-web:3000
+      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-pk-lf-dev-only}
+      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-sk-lf-dev-only}
+      EVAL_PROXY_BASE_URL: http://litellm:4000
+      # Use a DEDICATED LiteLLM virtual key with a max budget + rate limit —
+      # not the master key — so a runaway eval loop cannot burn money or
+      # starve production. See docs/EVALS_SETUP.md.
+      EVAL_PROXY_API_KEY: ${EVAL_PROXY_API_KEY:-sk-1234}
+      EVAL_JUDGE_MODEL: eval-judge
+      EVAL_INTERVAL_SECONDS: "300"
+      EVAL_LOOKBACK_MINUTES: "60"
+      EVAL_MAX_TRACES_PER_RUN: "25"
+      EVAL_SAMPLE_RATE_RAG: "0.25"
+      EVAL_SAMPLE_RATE_NON_RAG: "0.05"
+      EVAL_FAITHFULNESS_THRESHOLD: "0.7"
+      EVAL_RELEVANCY_THRESHOLD: "0.5"
+      EVAL_SKIP_MODELS: judge-model,eval-judge
+      EVAL_STATE_PATH: /data/eval_state.sqlite
+      DEEPEVAL_TELEMETRY_OPT_OUT: "YES"
+    volumes:
+      - eval_runner_state:/data
+    depends_on:
+      - langfuse-web
+    restart: unless-stopped
+
+volumes:
+  langfuse_pg_data:
+  langfuse_clickhouse_data:
+  langfuse_clickhouse_logs:
+  langfuse_redis_data:
+  langfuse_minio_data:
+  eval_runner_state:

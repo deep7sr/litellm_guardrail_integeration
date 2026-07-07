@@ -69,6 +69,12 @@ PASS_THRESHOLD = float(os.environ.get("GUARDRAIL_THRESHOLD", "0.7"))
 MAX_RETRIES = int(os.environ.get("MAX_ATTEMPTS", "3"))
 DEFAULT_ON_FAIL = os.environ.get("GUARDRAIL_MODE", "retry")  # "retry" | "block"
 JUDGE_MODEL = os.environ.get("JUDGE_MODEL", "judge-model")
+# Models whose traffic is never scored: the guardrail's own judge plus any
+# other internal judges (e.g. the eval pipeline's eval-judge) — comma-
+# separated in GUARDRAIL_SKIP_MODELS.
+SKIP_MODELS = {JUDGE_MODEL} | {
+    m.strip() for m in os.environ.get("GUARDRAIL_SKIP_MODELS", "").split(",") if m.strip()
+}
 PROXY_BASE_URL = os.environ.get("PROXY_BASE_URL", "http://localhost:4000/v1")
 # A single faithfulness score fans out into several judge calls; this bounds
 # the whole scoring step so a hung judge cannot stall the proxy request.
@@ -235,9 +241,10 @@ class FaithfulnessGuardrail(CustomGuardrail):
         return None
 
     async def async_post_call_success_hook(self, data: dict, user_api_key_dict: UserAPIKeyAuth, response):
-        # Recursion guard 1: never re-score the judge's own decompose/verify
-        # calls (they re-enter this proxy).
-        if data.get("model") == JUDGE_MODEL:
+        # Recursion guard 1: never re-score judge traffic — the guardrail
+        # judge's own decompose/verify calls re-enter this proxy, and the
+        # eval pipeline's judge calls route through it too.
+        if data.get("model") in SKIP_MODELS:
             return response
 
         # Recursion guard 2: never re-score our own regeneration calls.

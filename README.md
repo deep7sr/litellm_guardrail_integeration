@@ -94,6 +94,15 @@ regeneration calls re-enter this same proxy):
 | `DATABASE_URL` | — | Postgres for the `faithfulness_events` audit table (optional; logging disabled if unset). |
 | `GIT_PYTHON_REFRESH` | set to `quiet` | Required: RAGAS transitively imports GitPython, which errors without a git binary. |
 
+## Evaluation (Langfuse + DeepEval)
+
+The proxy traces every request to self-hosted Langfuse OSS
+(`docker-compose.langfuse.yml`), and an async eval runner (`evals/`) samples
+those traces, scores them with DeepEval (judge = open-source model behind
+this proxy's `eval-judge` entry), and pushes scores back to Langfuse — never
+on the request path, never through a paid eval service. Architecture:
+`docs/EVALS_ARCHITECTURE_PLAN.md`; setup/runbook: `docs/EVALS_SETUP.md`.
+
 ## Observability
 
 Every attempt is logged to Postgres (`faithfulness_events`): request id,

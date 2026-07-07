@@ -13,8 +13,30 @@ model_list:
       api_key: os.environ/GROQ_API_KEY
       reasoning_effort: "low"
 
+  # Judge used by the ASYNC eval pipeline (deepeval, via this proxy).
+  # Separate from judge-model on purpose: independent budget/rate limits and
+  # observability for eval traffic vs guardrail traffic. Swap to a
+  # self-hosted endpoint (vLLM/Ollama) here without touching eval code.
+  # DeepEval metrics need schema-conforming JSON from the judge — keep this
+  # a >=20B-class model (small models fail JSON conformance and silently
+  # corrupt scores).
+  - model_name: eval-judge
+    litellm_params:
+      model: groq/openai/gpt-oss-120b
+      api_key: os.environ/GROQ_API_KEY
+      reasoning_effort: "low"
+
 general_settings:
   master_key: os.environ/LITELLM_MASTER_KEY
+
+litellm_settings:
+  # Trace every request/response to self-hosted Langfuse (docker-compose.
+  # langfuse.yml). Requires the langfuse SDK (v2: pip install "langfuse<3")
+  # in the LiteLLM image, plus LANGFUSE_PUBLIC_KEY / LANGFUSE_SECRET_KEY /
+  # LANGFUSE_HOST env vars. Callback failures are non-blocking — traffic is
+  # never impacted by Langfuse being down.
+  success_callback: ["langfuse"]
+  failure_callback: ["langfuse"]
 
 # IMPORTANT: enable exactly ONE of the two guardrails below — both fire on
 # post_call, so enabling both would double-score (and double-judge) every

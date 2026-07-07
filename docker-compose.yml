@@ -28,6 +28,13 @@ services:
       - GUARDRAIL_MODE=retry   # "retry" (regenerate) or "block" (fail fast)
       - JUDGE_TIMEOUT_SECONDS=60
       # - EVIDENCE_MARKER=--- Retrieved Evidence ---   # default; override only org-wide
+      # Eval pipeline judge traffic must never be re-scored by the guardrail
+      - GUARDRAIL_SKIP_MODELS=eval-judge
+      # Langfuse tracing (litellm_settings.success_callback in the config).
+      # Values match docker-compose.langfuse.yml's LANGFUSE_INIT_* bootstrap.
+      - LANGFUSE_HOST=http://langfuse-web:3000
+      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY:-pk-lf-dev-only}
+      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY:-sk-lf-dev-only}
     depends_on:
       - db
     restart: unless-stopped

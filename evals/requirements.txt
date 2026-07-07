@@ -1,0 +1,7 @@
+# Eval runner dependencies.
+# langfuse is pinned <3: the v2 SDK's fetch_traces()/score() API is what the
+# pipeline uses, and it's the SDK generation LiteLLM's "langfuse" callback
+# expects — keep the runner and the proxy image on the same major.
+deepeval>=3.0,<4
+langfuse>=2.54,<3
+litellm>=1.61
