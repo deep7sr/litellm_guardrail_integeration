@@ -113,11 +113,45 @@ Verdicts: `passed` · `blocked` · `retrying` · `exhausted` ·
 | Context extraction, marker rules, injection safety, multi-turn disambiguation | 23-case pytest suite (`tests/`), real `litellm.ModelResponse` objects, mocked judge | ✅ passing |
 | Enforcement paths: pass / block / retry-correct / exhaustion-fallback / fail-open / both recursion guards | same suite | ✅ passing |
 | v2 reasoning: reason in 400 detail, reason in fallback, specific retry feedback, graceful degradation when reason step fails | same suite | ✅ passing |
-| Live end-to-end scoring (real judge, real Groq models) — v1 behavior | validated on the office VM across three domains (drone/SaaS/insurance): clean pass 1.000, injection neutralized, forced hallucination 0.000→caught→self-corrected, multi-turn marker disambiguation, unscored passthrough | ✅ done (pre-merge form of this code) |
+| Structural correctness at scale: 64-row golden dataset, 6 domains, 10 answer patterns, single- + multi-turn, all 4 configs (v1/v2 × retry/block) | `scripts/run_golden_eval.py --mode pipeline` — real guardrail hook, oracle judge (see `reports/golden_eval_pipeline_report.md`) | ✅ 64/64 extraction correct, 256/256 enforcement outcomes correct (see caveat below) |
+| Real judge scoring accuracy + threshold calibration on the same 64-row dataset | `scripts/run_golden_eval.py --mode live` against a real judge — **not run yet, no network to Groq from this environment** | ⚠️ **required on the VM before production cutover** |
+| Live end-to-end scoring (real judge, real Groq models) — v1 behavior, earlier iteration of this code | validated on the office VM across three domains (drone/SaaS/insurance): clean pass 1.000, injection neutralized, forced hallucination 0.000→caught→self-corrected, multi-turn marker disambiguation, unscored passthrough | ✅ done (pre-merge form of this code) |
 | Live end-to-end — this exact merged code + v2 reasoning variant | **pending — run `scripts/demo_test.py` on the VM after deploying this branch** | ⚠️ required before production cutover |
-| Threshold calibration against labeled data | not done — `0.7` is empirical | ⚠️ open |
+| Threshold calibration against labeled data | not done — `0.7` is empirical | ⚠️ open — the golden dataset + live mode above is the tool to close this |
 
 Run the unit tests: `pip install pytest pytest-asyncio && python -m pytest tests/`
+
+### Golden dataset evaluation
+
+`datasets/golden_faithfulness_dataset.json` — 64 hand-labeled rows (32
+`grounded` / 32 `hallucinated`), spanning 6 domains (drone hardware, SaaS,
+insurance, HR policy, banking, IT helpdesk) and 10 answer-pattern tags
+(verbatim, paraphrase, multi-fact, negation, honest refusal, full/partial/
+contradicting/invented-specifics/wrong-entity hallucinations), plus 4
+multi-turn rows. Kept in the repo so you can eyeball or extend it manually.
+
+```bash
+# Structural correctness — no network needed, run anywhere:
+python scripts/run_golden_eval.py --mode pipeline
+# -> reports/golden_eval_pipeline_report.md + golden_eval_pipeline_results.json
+
+# Real judge accuracy + threshold sweep — run on the VM:
+python scripts/run_golden_eval.py --mode live \
+    --base-url http://localhost:4000/v1 --api-key sk-1234 --judge-model judge-model
+# -> reports/golden_eval_live_report.md + golden_eval_live_results.json
+```
+
+**Pipeline-mode result (this exact code, run in this session): 64/64 context
+extractions correct, including all 4 multi-turn rows; 64/64 enforcement
+outcomes correct across all 4 configurations (v1/v2 × retry/block) — 256/256
+total.** Read the caveat before treating that as "the guardrail is 100%
+accurate": pipeline mode replaces the judge's score with an oracle equal to
+the row's label, so it proves the extraction/enforcement *code* is correct,
+not that the real judge scores these rows correctly. `grounded_negation` and
+`grounded_refusal` rows are specifically flagged in the report as the
+patterns most likely to reveal real judge inaccuracy (RAGAS has under-scored
+correct negative/refusal answers in this project's own earlier testing) —
+that's exactly what live mode against the real judge will surface.
 
 ## Deploying on the VM
 

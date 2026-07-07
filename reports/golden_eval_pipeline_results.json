@@ -1,0 +1,3976 @@
+{
+  "raw": {
+    "v1_retry": [
+      {
+        "id": "drone-01",
+        "domain": "drone",
+        "pattern": "grounded_verbatim",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The X100 drone has a flight time of 28 minutes on a full charge."
+        ]
+      },
+      {
+        "id": "drone-02",
+        "domain": "drone",
+        "pattern": "grounded_paraphrase",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The X100 weighs 249 grams and is available in matte black only."
+        ]
+      },
+      {
+        "id": "drone-03",
+        "domain": "drone",
+        "pattern": "grounded_multi_fact",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The X100 drone has a flight time of 28 minutes on a full charge.\n\nThe X100 charges fully in 90 minutes using the included fast charger, or 3 hours with a standard USB-C charger."
+        ]
+      },
+      {
+        "id": "drone-04",
+        "domain": "drone",
+        "pattern": "grounded_negation",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The X100 weighs 249 grams and is available in matte black only."
+        ]
+      },
+      {
+        "id": "drone-05",
+        "domain": "drone",
+        "pattern": "grounded_refusal",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The X100 drone has a flight time of 28 minutes on a full charge.\n\nThe X100 weighs 249 grams and is available in matte black only."
+        ]
+      },
+      {
+        "id": "drone-06",
+        "domain": "drone",
+        "pattern": "hallucinated_full",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The X100 weighs 249 grams and is available in matte black only."
+        ]
+      },
+      {
+        "id": "drone-07",
+        "domain": "drone",
+        "pattern": "hallucinated_partial",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The X100 weighs 249 grams and is available in matte black only."
+        ]
+      },
+      {
+        "id": "drone-08",
+        "domain": "drone",
+        "pattern": "hallucinated_contradiction",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The X100 drone has a flight time of 28 minutes on a full charge."
+        ]
+      },
+      {
+        "id": "drone-09",
+        "domain": "drone",
+        "pattern": "hallucinated_specifics",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The X100 has a maximum transmission range of 8 kilometers and includes a 4K camera with a 1-inch sensor."
+        ]
+      },
+      {
+        "id": "drone-10",
+        "domain": "drone",
+        "pattern": "hallucinated_wrong_entity",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The X100 charges fully in 90 minutes using the included fast charger, or 3 hours with a standard USB-C charger."
+        ]
+      },
+      {
+        "id": "saas-01",
+        "domain": "saas",
+        "pattern": "grounded_verbatim",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "CloudSync Pro's Team plan includes 500GB of cloud storage per user."
+        ]
+      },
+      {
+        "id": "saas-02",
+        "domain": "saas",
+        "pattern": "grounded_paraphrase",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The Team plan costs $12 per user per month when billed annually, or $15 per user per month when billed monthly."
+        ]
+      },
+      {
+        "id": "saas-03",
+        "domain": "saas",
+        "pattern": "grounded_multi_fact",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "CloudSync Pro offers 24/7 customer support via live chat and email only \u2014 there is no phone support option.\n\nCloudSync Pro encrypts all files at rest using AES-256 and supports two-factor authentication."
+        ]
+      },
+      {
+        "id": "saas-04",
+        "domain": "saas",
+        "pattern": "grounded_negation",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "CloudSync Pro offers 24/7 customer support via live chat and email only \u2014 there is no phone support option."
+        ]
+      },
+      {
+        "id": "saas-05",
+        "domain": "saas",
+        "pattern": "grounded_refusal",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "CloudSync Pro's Team plan includes 500GB of cloud storage per user.\n\nThe Team plan costs $12 per user per month when billed annually, or $15 per user per month when billed monthly."
+        ]
+      },
+      {
+        "id": "saas-06",
+        "domain": "saas",
+        "pattern": "hallucinated_full",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "CloudSync Pro offers 24/7 customer support via live chat and email only \u2014 there is no phone support option."
+        ]
+      },
+      {
+        "id": "saas-07",
+        "domain": "saas",
+        "pattern": "hallucinated_partial",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "CloudSync Pro's Team plan includes 500GB of cloud storage per user."
+        ]
+      },
+      {
+        "id": "saas-08",
+        "domain": "saas",
+        "pattern": "hallucinated_contradiction",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "CloudSync Pro's Team plan includes 500GB of cloud storage per user."
+        ]
+      },
+      {
+        "id": "saas-09",
+        "domain": "saas",
+        "pattern": "hallucinated_specifics",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "CloudSync Pro's Team plan includes 500GB of cloud storage per user.\n\nCloudSync Pro encrypts all files at rest using AES-256 and supports two-factor authentication."
+        ]
+      },
+      {
+        "id": "saas-10",
+        "domain": "saas",
+        "pattern": "hallucinated_wrong_entity",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The Team plan costs $12 per user per month when billed annually, or $15 per user per month when billed monthly."
+        ]
+      },
+      {
+        "id": "insurance-01",
+        "domain": "insurance",
+        "pattern": "grounded_verbatim",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "GreenLeaf Travel Insurance covers trip cancellation up to $5,000 per policy."
+        ]
+      },
+      {
+        "id": "insurance-02",
+        "domain": "insurance",
+        "pattern": "grounded_paraphrase",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Claims must be filed within 30 days of the incident to be eligible for reimbursement."
+        ]
+      },
+      {
+        "id": "insurance-03",
+        "domain": "insurance",
+        "pattern": "grounded_multi_fact",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The deductible for medical claims under this policy is $100 per incident.\n\nClaims must be filed within 30 days of the incident to be eligible for reimbursement."
+        ]
+      },
+      {
+        "id": "insurance-04",
+        "domain": "insurance",
+        "pattern": "grounded_negation",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Lost baggage is covered up to $1,200, excluding jewelry and electronics over $500 in value."
+        ]
+      },
+      {
+        "id": "insurance-05",
+        "domain": "insurance",
+        "pattern": "grounded_refusal",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "GreenLeaf Travel Insurance covers trip cancellation up to $5,000 per policy.\n\nLost baggage is covered up to $1,200, excluding jewelry and electronics over $500 in value."
+        ]
+      },
+      {
+        "id": "insurance-06",
+        "domain": "insurance",
+        "pattern": "hallucinated_full",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Claims must be filed within 30 days of the incident to be eligible for reimbursement."
+        ]
+      },
+      {
+        "id": "insurance-07",
+        "domain": "insurance",
+        "pattern": "hallucinated_partial",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Lost baggage is covered up to $1,200, excluding jewelry and electronics over $500 in value."
+        ]
+      },
+      {
+        "id": "insurance-08",
+        "domain": "insurance",
+        "pattern": "hallucinated_contradiction",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The deductible for medical claims under this policy is $100 per incident."
+        ]
+      },
+      {
+        "id": "insurance-09",
+        "domain": "insurance",
+        "pattern": "hallucinated_specifics",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "GreenLeaf Travel Insurance covers trip cancellation up to $5,000 per policy."
+        ]
+      },
+      {
+        "id": "insurance-10",
+        "domain": "insurance",
+        "pattern": "hallucinated_wrong_entity",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "GreenLeaf Travel Insurance covers trip cancellation up to $5,000 per policy.\n\nLost baggage is covered up to $1,200, excluding jewelry and electronics over $500 in value."
+        ]
+      },
+      {
+        "id": "hr-01",
+        "domain": "hr",
+        "pattern": "grounded_verbatim",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Full-time employees accrue 1.5 days of paid leave per month, totaling 18 days per year."
+        ]
+      },
+      {
+        "id": "hr-02",
+        "domain": "hr",
+        "pattern": "grounded_paraphrase",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Unused leave can be carried over to the next calendar year, up to a maximum of 5 days."
+        ]
+      },
+      {
+        "id": "hr-03",
+        "domain": "hr",
+        "pattern": "grounded_multi_fact",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Parental leave is 16 weeks fully paid for primary caregivers and 4 weeks for secondary caregivers.\n\nLeave requests must be submitted through the HR portal at least 7 working days in advance, except for emergencies."
+        ]
+      },
+      {
+        "id": "hr-04",
+        "domain": "hr",
+        "pattern": "grounded_negation",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Full-time employees accrue 1.5 days of paid leave per month, totaling 18 days per year.\n\nUnused leave can be carried over to the next calendar year, up to a maximum of 5 days."
+        ]
+      },
+      {
+        "id": "hr-05",
+        "domain": "hr",
+        "pattern": "grounded_refusal",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Full-time employees accrue 1.5 days of paid leave per month, totaling 18 days per year.\n\nUnused leave can be carried over to the next calendar year, up to a maximum of 5 days."
+        ]
+      },
+      {
+        "id": "hr-06",
+        "domain": "hr",
+        "pattern": "hallucinated_full",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Full-time employees accrue 1.5 days of paid leave per month, totaling 18 days per year."
+        ]
+      },
+      {
+        "id": "hr-07",
+        "domain": "hr",
+        "pattern": "hallucinated_partial",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Parental leave is 16 weeks fully paid for primary caregivers and 4 weeks for secondary caregivers."
+        ]
+      },
+      {
+        "id": "hr-08",
+        "domain": "hr",
+        "pattern": "hallucinated_contradiction",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Leave requests must be submitted through the HR portal at least 7 working days in advance, except for emergencies."
+        ]
+      },
+      {
+        "id": "hr-09",
+        "domain": "hr",
+        "pattern": "hallucinated_specifics",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Full-time employees accrue 1.5 days of paid leave per month, totaling 18 days per year.\n\nLeave requests must be submitted through the HR portal at least 7 working days in advance, except for emergencies."
+        ]
+      },
+      {
+        "id": "hr-10",
+        "domain": "hr",
+        "pattern": "hallucinated_wrong_entity",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Parental leave is 16 weeks fully paid for primary caregivers and 4 weeks for secondary caregivers."
+        ]
+      },
+      {
+        "id": "bank-01",
+        "domain": "bank",
+        "pattern": "grounded_verbatim",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The Aurora credit card has an annual fee of $95, waived for the first year."
+        ]
+      },
+      {
+        "id": "bank-02",
+        "domain": "bank",
+        "pattern": "grounded_paraphrase",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The card offers no foreign transaction fees and includes rental car collision coverage."
+        ]
+      },
+      {
+        "id": "bank-03",
+        "domain": "bank",
+        "pattern": "grounded_multi_fact",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Cardholders earn 3 points per dollar on dining and 1 point per dollar on all other purchases.\n\nLate payments incur a fee of up to $40 and may increase the APR to the penalty rate of 29.99%."
+        ]
+      },
+      {
+        "id": "bank-04",
+        "domain": "bank",
+        "pattern": "grounded_negation",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The Aurora credit card has an annual fee of $95, waived for the first year."
+        ]
+      },
+      {
+        "id": "bank-05",
+        "domain": "bank",
+        "pattern": "grounded_refusal",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The Aurora credit card has an annual fee of $95, waived for the first year.\n\nCardholders earn 3 points per dollar on dining and 1 point per dollar on all other purchases."
+        ]
+      },
+      {
+        "id": "bank-06",
+        "domain": "bank",
+        "pattern": "hallucinated_full",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Cardholders earn 3 points per dollar on dining and 1 point per dollar on all other purchases."
+        ]
+      },
+      {
+        "id": "bank-07",
+        "domain": "bank",
+        "pattern": "hallucinated_partial",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Cardholders earn 3 points per dollar on dining and 1 point per dollar on all other purchases."
+        ]
+      },
+      {
+        "id": "bank-08",
+        "domain": "bank",
+        "pattern": "hallucinated_contradiction",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Cardholders earn 3 points per dollar on dining and 1 point per dollar on all other purchases."
+        ]
+      },
+      {
+        "id": "bank-09",
+        "domain": "bank",
+        "pattern": "hallucinated_specifics",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The Aurora credit card has an annual fee of $95, waived for the first year."
+        ]
+      },
+      {
+        "id": "bank-10",
+        "domain": "bank",
+        "pattern": "hallucinated_wrong_entity",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The Aurora credit card has an annual fee of $95, waived for the first year.\n\nLate payments incur a fee of up to $40 and may increase the APR to the penalty rate of 29.99%."
+        ]
+      },
+      {
+        "id": "helpdesk-01",
+        "domain": "helpdesk",
+        "pattern": "grounded_verbatim",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "VPN sessions automatically disconnect after 12 hours and require re-authentication with MFA."
+        ]
+      },
+      {
+        "id": "helpdesk-02",
+        "domain": "helpdesk",
+        "pattern": "grounded_paraphrase",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The VPN client is supported on Windows 11, macOS 13 or later, and Ubuntu 22.04."
+        ]
+      },
+      {
+        "id": "helpdesk-03",
+        "domain": "helpdesk",
+        "pattern": "grounded_multi_fact",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Remote employees must connect through the corporate VPN before accessing internal systems.\n\nFor VPN issues, open a ticket in the ServiceDesk portal; average response time is 4 business hours."
+        ]
+      },
+      {
+        "id": "helpdesk-04",
+        "domain": "helpdesk",
+        "pattern": "grounded_negation",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The VPN client is supported on Windows 11, macOS 13 or later, and Ubuntu 22.04."
+        ]
+      },
+      {
+        "id": "helpdesk-05",
+        "domain": "helpdesk",
+        "pattern": "grounded_refusal",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Remote employees must connect through the corporate VPN before accessing internal systems.\n\nVPN sessions automatically disconnect after 12 hours and require re-authentication with MFA."
+        ]
+      },
+      {
+        "id": "helpdesk-06",
+        "domain": "helpdesk",
+        "pattern": "hallucinated_full",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "For VPN issues, open a ticket in the ServiceDesk portal; average response time is 4 business hours."
+        ]
+      },
+      {
+        "id": "helpdesk-07",
+        "domain": "helpdesk",
+        "pattern": "hallucinated_partial",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "VPN sessions automatically disconnect after 12 hours and require re-authentication with MFA."
+        ]
+      },
+      {
+        "id": "helpdesk-08",
+        "domain": "helpdesk",
+        "pattern": "hallucinated_contradiction",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "VPN sessions automatically disconnect after 12 hours and require re-authentication with MFA."
+        ]
+      },
+      {
+        "id": "helpdesk-09",
+        "domain": "helpdesk",
+        "pattern": "hallucinated_specifics",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Remote employees must connect through the corporate VPN before accessing internal systems.\n\nThe VPN client is supported on Windows 11, macOS 13 or later, and Ubuntu 22.04."
+        ]
+      },
+      {
+        "id": "helpdesk-10",
+        "domain": "helpdesk",
+        "pattern": "hallucinated_wrong_entity",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "VPN sessions automatically disconnect after 12 hours and require re-authentication with MFA.\n\nFor VPN issues, open a ticket in the ServiceDesk portal; average response time is 4 business hours."
+        ]
+      },
+      {
+        "id": "mt-drone-01",
+        "domain": "drone",
+        "pattern": "grounded_multiturn",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The X100 weighs 249 grams and is available in matte black only."
+        ]
+      },
+      {
+        "id": "mt-saas-01",
+        "domain": "saas",
+        "pattern": "hallucinated_multiturn",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The Team plan costs $12 per user per month when billed annually, or $15 per user per month when billed monthly."
+        ]
+      },
+      {
+        "id": "mt-insurance-01",
+        "domain": "insurance",
+        "pattern": "grounded_multiturn",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Lost baggage is covered up to $1,200, excluding jewelry and electronics over $500 in value."
+        ]
+      },
+      {
+        "id": "mt-helpdesk-01",
+        "domain": "helpdesk",
+        "pattern": "hallucinated_multiturn",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "VPN sessions automatically disconnect after 12 hours and require re-authentication with MFA."
+        ]
+      }
+    ],
+    "v1_block": [
+      {
+        "id": "drone-01",
+        "domain": "drone",
+        "pattern": "grounded_verbatim",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The X100 drone has a flight time of 28 minutes on a full charge."
+        ]
+      },
+      {
+        "id": "drone-02",
+        "domain": "drone",
+        "pattern": "grounded_paraphrase",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The X100 weighs 249 grams and is available in matte black only."
+        ]
+      },
+      {
+        "id": "drone-03",
+        "domain": "drone",
+        "pattern": "grounded_multi_fact",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The X100 drone has a flight time of 28 minutes on a full charge.\n\nThe X100 charges fully in 90 minutes using the included fast charger, or 3 hours with a standard USB-C charger."
+        ]
+      },
+      {
+        "id": "drone-04",
+        "domain": "drone",
+        "pattern": "grounded_negation",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The X100 weighs 249 grams and is available in matte black only."
+        ]
+      },
+      {
+        "id": "drone-05",
+        "domain": "drone",
+        "pattern": "grounded_refusal",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The X100 drone has a flight time of 28 minutes on a full charge.\n\nThe X100 weighs 249 grams and is available in matte black only."
+        ]
+      },
+      {
+        "id": "drone-06",
+        "domain": "drone",
+        "pattern": "hallucinated_full",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The X100 weighs 249 grams and is available in matte black only."
+        ]
+      },
+      {
+        "id": "drone-07",
+        "domain": "drone",
+        "pattern": "hallucinated_partial",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The X100 weighs 249 grams and is available in matte black only."
+        ]
+      },
+      {
+        "id": "drone-08",
+        "domain": "drone",
+        "pattern": "hallucinated_contradiction",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The X100 drone has a flight time of 28 minutes on a full charge."
+        ]
+      },
+      {
+        "id": "drone-09",
+        "domain": "drone",
+        "pattern": "hallucinated_specifics",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The X100 has a maximum transmission range of 8 kilometers and includes a 4K camera with a 1-inch sensor."
+        ]
+      },
+      {
+        "id": "drone-10",
+        "domain": "drone",
+        "pattern": "hallucinated_wrong_entity",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The X100 charges fully in 90 minutes using the included fast charger, or 3 hours with a standard USB-C charger."
+        ]
+      },
+      {
+        "id": "saas-01",
+        "domain": "saas",
+        "pattern": "grounded_verbatim",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "CloudSync Pro's Team plan includes 500GB of cloud storage per user."
+        ]
+      },
+      {
+        "id": "saas-02",
+        "domain": "saas",
+        "pattern": "grounded_paraphrase",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The Team plan costs $12 per user per month when billed annually, or $15 per user per month when billed monthly."
+        ]
+      },
+      {
+        "id": "saas-03",
+        "domain": "saas",
+        "pattern": "grounded_multi_fact",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "CloudSync Pro offers 24/7 customer support via live chat and email only \u2014 there is no phone support option.\n\nCloudSync Pro encrypts all files at rest using AES-256 and supports two-factor authentication."
+        ]
+      },
+      {
+        "id": "saas-04",
+        "domain": "saas",
+        "pattern": "grounded_negation",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "CloudSync Pro offers 24/7 customer support via live chat and email only \u2014 there is no phone support option."
+        ]
+      },
+      {
+        "id": "saas-05",
+        "domain": "saas",
+        "pattern": "grounded_refusal",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "CloudSync Pro's Team plan includes 500GB of cloud storage per user.\n\nThe Team plan costs $12 per user per month when billed annually, or $15 per user per month when billed monthly."
+        ]
+      },
+      {
+        "id": "saas-06",
+        "domain": "saas",
+        "pattern": "hallucinated_full",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "CloudSync Pro offers 24/7 customer support via live chat and email only \u2014 there is no phone support option."
+        ]
+      },
+      {
+        "id": "saas-07",
+        "domain": "saas",
+        "pattern": "hallucinated_partial",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "CloudSync Pro's Team plan includes 500GB of cloud storage per user."
+        ]
+      },
+      {
+        "id": "saas-08",
+        "domain": "saas",
+        "pattern": "hallucinated_contradiction",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "CloudSync Pro's Team plan includes 500GB of cloud storage per user."
+        ]
+      },
+      {
+        "id": "saas-09",
+        "domain": "saas",
+        "pattern": "hallucinated_specifics",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "CloudSync Pro's Team plan includes 500GB of cloud storage per user.\n\nCloudSync Pro encrypts all files at rest using AES-256 and supports two-factor authentication."
+        ]
+      },
+      {
+        "id": "saas-10",
+        "domain": "saas",
+        "pattern": "hallucinated_wrong_entity",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The Team plan costs $12 per user per month when billed annually, or $15 per user per month when billed monthly."
+        ]
+      },
+      {
+        "id": "insurance-01",
+        "domain": "insurance",
+        "pattern": "grounded_verbatim",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "GreenLeaf Travel Insurance covers trip cancellation up to $5,000 per policy."
+        ]
+      },
+      {
+        "id": "insurance-02",
+        "domain": "insurance",
+        "pattern": "grounded_paraphrase",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Claims must be filed within 30 days of the incident to be eligible for reimbursement."
+        ]
+      },
+      {
+        "id": "insurance-03",
+        "domain": "insurance",
+        "pattern": "grounded_multi_fact",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The deductible for medical claims under this policy is $100 per incident.\n\nClaims must be filed within 30 days of the incident to be eligible for reimbursement."
+        ]
+      },
+      {
+        "id": "insurance-04",
+        "domain": "insurance",
+        "pattern": "grounded_negation",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Lost baggage is covered up to $1,200, excluding jewelry and electronics over $500 in value."
+        ]
+      },
+      {
+        "id": "insurance-05",
+        "domain": "insurance",
+        "pattern": "grounded_refusal",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "GreenLeaf Travel Insurance covers trip cancellation up to $5,000 per policy.\n\nLost baggage is covered up to $1,200, excluding jewelry and electronics over $500 in value."
+        ]
+      },
+      {
+        "id": "insurance-06",
+        "domain": "insurance",
+        "pattern": "hallucinated_full",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Claims must be filed within 30 days of the incident to be eligible for reimbursement."
+        ]
+      },
+      {
+        "id": "insurance-07",
+        "domain": "insurance",
+        "pattern": "hallucinated_partial",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Lost baggage is covered up to $1,200, excluding jewelry and electronics over $500 in value."
+        ]
+      },
+      {
+        "id": "insurance-08",
+        "domain": "insurance",
+        "pattern": "hallucinated_contradiction",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The deductible for medical claims under this policy is $100 per incident."
+        ]
+      },
+      {
+        "id": "insurance-09",
+        "domain": "insurance",
+        "pattern": "hallucinated_specifics",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "GreenLeaf Travel Insurance covers trip cancellation up to $5,000 per policy."
+        ]
+      },
+      {
+        "id": "insurance-10",
+        "domain": "insurance",
+        "pattern": "hallucinated_wrong_entity",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "GreenLeaf Travel Insurance covers trip cancellation up to $5,000 per policy.\n\nLost baggage is covered up to $1,200, excluding jewelry and electronics over $500 in value."
+        ]
+      },
+      {
+        "id": "hr-01",
+        "domain": "hr",
+        "pattern": "grounded_verbatim",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Full-time employees accrue 1.5 days of paid leave per month, totaling 18 days per year."
+        ]
+      },
+      {
+        "id": "hr-02",
+        "domain": "hr",
+        "pattern": "grounded_paraphrase",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Unused leave can be carried over to the next calendar year, up to a maximum of 5 days."
+        ]
+      },
+      {
+        "id": "hr-03",
+        "domain": "hr",
+        "pattern": "grounded_multi_fact",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Parental leave is 16 weeks fully paid for primary caregivers and 4 weeks for secondary caregivers.\n\nLeave requests must be submitted through the HR portal at least 7 working days in advance, except for emergencies."
+        ]
+      },
+      {
+        "id": "hr-04",
+        "domain": "hr",
+        "pattern": "grounded_negation",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Full-time employees accrue 1.5 days of paid leave per month, totaling 18 days per year.\n\nUnused leave can be carried over to the next calendar year, up to a maximum of 5 days."
+        ]
+      },
+      {
+        "id": "hr-05",
+        "domain": "hr",
+        "pattern": "grounded_refusal",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Full-time employees accrue 1.5 days of paid leave per month, totaling 18 days per year.\n\nUnused leave can be carried over to the next calendar year, up to a maximum of 5 days."
+        ]
+      },
+      {
+        "id": "hr-06",
+        "domain": "hr",
+        "pattern": "hallucinated_full",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Full-time employees accrue 1.5 days of paid leave per month, totaling 18 days per year."
+        ]
+      },
+      {
+        "id": "hr-07",
+        "domain": "hr",
+        "pattern": "hallucinated_partial",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Parental leave is 16 weeks fully paid for primary caregivers and 4 weeks for secondary caregivers."
+        ]
+      },
+      {
+        "id": "hr-08",
+        "domain": "hr",
+        "pattern": "hallucinated_contradiction",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Leave requests must be submitted through the HR portal at least 7 working days in advance, except for emergencies."
+        ]
+      },
+      {
+        "id": "hr-09",
+        "domain": "hr",
+        "pattern": "hallucinated_specifics",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Full-time employees accrue 1.5 days of paid leave per month, totaling 18 days per year.\n\nLeave requests must be submitted through the HR portal at least 7 working days in advance, except for emergencies."
+        ]
+      },
+      {
+        "id": "hr-10",
+        "domain": "hr",
+        "pattern": "hallucinated_wrong_entity",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Parental leave is 16 weeks fully paid for primary caregivers and 4 weeks for secondary caregivers."
+        ]
+      },
+      {
+        "id": "bank-01",
+        "domain": "bank",
+        "pattern": "grounded_verbatim",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The Aurora credit card has an annual fee of $95, waived for the first year."
+        ]
+      },
+      {
+        "id": "bank-02",
+        "domain": "bank",
+        "pattern": "grounded_paraphrase",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The card offers no foreign transaction fees and includes rental car collision coverage."
+        ]
+      },
+      {
+        "id": "bank-03",
+        "domain": "bank",
+        "pattern": "grounded_multi_fact",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Cardholders earn 3 points per dollar on dining and 1 point per dollar on all other purchases.\n\nLate payments incur a fee of up to $40 and may increase the APR to the penalty rate of 29.99%."
+        ]
+      },
+      {
+        "id": "bank-04",
+        "domain": "bank",
+        "pattern": "grounded_negation",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The Aurora credit card has an annual fee of $95, waived for the first year."
+        ]
+      },
+      {
+        "id": "bank-05",
+        "domain": "bank",
+        "pattern": "grounded_refusal",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The Aurora credit card has an annual fee of $95, waived for the first year.\n\nCardholders earn 3 points per dollar on dining and 1 point per dollar on all other purchases."
+        ]
+      },
+      {
+        "id": "bank-06",
+        "domain": "bank",
+        "pattern": "hallucinated_full",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Cardholders earn 3 points per dollar on dining and 1 point per dollar on all other purchases."
+        ]
+      },
+      {
+        "id": "bank-07",
+        "domain": "bank",
+        "pattern": "hallucinated_partial",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Cardholders earn 3 points per dollar on dining and 1 point per dollar on all other purchases."
+        ]
+      },
+      {
+        "id": "bank-08",
+        "domain": "bank",
+        "pattern": "hallucinated_contradiction",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Cardholders earn 3 points per dollar on dining and 1 point per dollar on all other purchases."
+        ]
+      },
+      {
+        "id": "bank-09",
+        "domain": "bank",
+        "pattern": "hallucinated_specifics",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The Aurora credit card has an annual fee of $95, waived for the first year."
+        ]
+      },
+      {
+        "id": "bank-10",
+        "domain": "bank",
+        "pattern": "hallucinated_wrong_entity",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The Aurora credit card has an annual fee of $95, waived for the first year.\n\nLate payments incur a fee of up to $40 and may increase the APR to the penalty rate of 29.99%."
+        ]
+      },
+      {
+        "id": "helpdesk-01",
+        "domain": "helpdesk",
+        "pattern": "grounded_verbatim",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "VPN sessions automatically disconnect after 12 hours and require re-authentication with MFA."
+        ]
+      },
+      {
+        "id": "helpdesk-02",
+        "domain": "helpdesk",
+        "pattern": "grounded_paraphrase",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The VPN client is supported on Windows 11, macOS 13 or later, and Ubuntu 22.04."
+        ]
+      },
+      {
+        "id": "helpdesk-03",
+        "domain": "helpdesk",
+        "pattern": "grounded_multi_fact",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Remote employees must connect through the corporate VPN before accessing internal systems.\n\nFor VPN issues, open a ticket in the ServiceDesk portal; average response time is 4 business hours."
+        ]
+      },
+      {
+        "id": "helpdesk-04",
+        "domain": "helpdesk",
+        "pattern": "grounded_negation",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The VPN client is supported on Windows 11, macOS 13 or later, and Ubuntu 22.04."
+        ]
+      },
+      {
+        "id": "helpdesk-05",
+        "domain": "helpdesk",
+        "pattern": "grounded_refusal",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Remote employees must connect through the corporate VPN before accessing internal systems.\n\nVPN sessions automatically disconnect after 12 hours and require re-authentication with MFA."
+        ]
+      },
+      {
+        "id": "helpdesk-06",
+        "domain": "helpdesk",
+        "pattern": "hallucinated_full",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "For VPN issues, open a ticket in the ServiceDesk portal; average response time is 4 business hours."
+        ]
+      },
+      {
+        "id": "helpdesk-07",
+        "domain": "helpdesk",
+        "pattern": "hallucinated_partial",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "VPN sessions automatically disconnect after 12 hours and require re-authentication with MFA."
+        ]
+      },
+      {
+        "id": "helpdesk-08",
+        "domain": "helpdesk",
+        "pattern": "hallucinated_contradiction",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "VPN sessions automatically disconnect after 12 hours and require re-authentication with MFA."
+        ]
+      },
+      {
+        "id": "helpdesk-09",
+        "domain": "helpdesk",
+        "pattern": "hallucinated_specifics",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Remote employees must connect through the corporate VPN before accessing internal systems.\n\nThe VPN client is supported on Windows 11, macOS 13 or later, and Ubuntu 22.04."
+        ]
+      },
+      {
+        "id": "helpdesk-10",
+        "domain": "helpdesk",
+        "pattern": "hallucinated_wrong_entity",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "VPN sessions automatically disconnect after 12 hours and require re-authentication with MFA.\n\nFor VPN issues, open a ticket in the ServiceDesk portal; average response time is 4 business hours."
+        ]
+      },
+      {
+        "id": "mt-drone-01",
+        "domain": "drone",
+        "pattern": "grounded_multiturn",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The X100 weighs 249 grams and is available in matte black only."
+        ]
+      },
+      {
+        "id": "mt-saas-01",
+        "domain": "saas",
+        "pattern": "hallucinated_multiturn",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The Team plan costs $12 per user per month when billed annually, or $15 per user per month when billed monthly."
+        ]
+      },
+      {
+        "id": "mt-insurance-01",
+        "domain": "insurance",
+        "pattern": "grounded_multiturn",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Lost baggage is covered up to $1,200, excluding jewelry and electronics over $500 in value."
+        ]
+      },
+      {
+        "id": "mt-helpdesk-01",
+        "domain": "helpdesk",
+        "pattern": "hallucinated_multiturn",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "VPN sessions automatically disconnect after 12 hours and require re-authentication with MFA."
+        ]
+      }
+    ],
+    "v2_retry": [
+      {
+        "id": "drone-01",
+        "domain": "drone",
+        "pattern": "grounded_verbatim",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The X100 drone has a flight time of 28 minutes on a full charge."
+        ]
+      },
+      {
+        "id": "drone-02",
+        "domain": "drone",
+        "pattern": "grounded_paraphrase",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The X100 weighs 249 grams and is available in matte black only."
+        ]
+      },
+      {
+        "id": "drone-03",
+        "domain": "drone",
+        "pattern": "grounded_multi_fact",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The X100 drone has a flight time of 28 minutes on a full charge.\n\nThe X100 charges fully in 90 minutes using the included fast charger, or 3 hours with a standard USB-C charger."
+        ]
+      },
+      {
+        "id": "drone-04",
+        "domain": "drone",
+        "pattern": "grounded_negation",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The X100 weighs 249 grams and is available in matte black only."
+        ]
+      },
+      {
+        "id": "drone-05",
+        "domain": "drone",
+        "pattern": "grounded_refusal",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The X100 drone has a flight time of 28 minutes on a full charge.\n\nThe X100 weighs 249 grams and is available in matte black only."
+        ]
+      },
+      {
+        "id": "drone-06",
+        "domain": "drone",
+        "pattern": "hallucinated_full",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The X100 weighs 249 grams and is available in matte black only."
+        ]
+      },
+      {
+        "id": "drone-07",
+        "domain": "drone",
+        "pattern": "hallucinated_partial",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The X100 weighs 249 grams and is available in matte black only."
+        ]
+      },
+      {
+        "id": "drone-08",
+        "domain": "drone",
+        "pattern": "hallucinated_contradiction",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The X100 drone has a flight time of 28 minutes on a full charge."
+        ]
+      },
+      {
+        "id": "drone-09",
+        "domain": "drone",
+        "pattern": "hallucinated_specifics",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The X100 has a maximum transmission range of 8 kilometers and includes a 4K camera with a 1-inch sensor."
+        ]
+      },
+      {
+        "id": "drone-10",
+        "domain": "drone",
+        "pattern": "hallucinated_wrong_entity",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The X100 charges fully in 90 minutes using the included fast charger, or 3 hours with a standard USB-C charger."
+        ]
+      },
+      {
+        "id": "saas-01",
+        "domain": "saas",
+        "pattern": "grounded_verbatim",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "CloudSync Pro's Team plan includes 500GB of cloud storage per user."
+        ]
+      },
+      {
+        "id": "saas-02",
+        "domain": "saas",
+        "pattern": "grounded_paraphrase",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The Team plan costs $12 per user per month when billed annually, or $15 per user per month when billed monthly."
+        ]
+      },
+      {
+        "id": "saas-03",
+        "domain": "saas",
+        "pattern": "grounded_multi_fact",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "CloudSync Pro offers 24/7 customer support via live chat and email only \u2014 there is no phone support option.\n\nCloudSync Pro encrypts all files at rest using AES-256 and supports two-factor authentication."
+        ]
+      },
+      {
+        "id": "saas-04",
+        "domain": "saas",
+        "pattern": "grounded_negation",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "CloudSync Pro offers 24/7 customer support via live chat and email only \u2014 there is no phone support option."
+        ]
+      },
+      {
+        "id": "saas-05",
+        "domain": "saas",
+        "pattern": "grounded_refusal",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "CloudSync Pro's Team plan includes 500GB of cloud storage per user.\n\nThe Team plan costs $12 per user per month when billed annually, or $15 per user per month when billed monthly."
+        ]
+      },
+      {
+        "id": "saas-06",
+        "domain": "saas",
+        "pattern": "hallucinated_full",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "CloudSync Pro offers 24/7 customer support via live chat and email only \u2014 there is no phone support option."
+        ]
+      },
+      {
+        "id": "saas-07",
+        "domain": "saas",
+        "pattern": "hallucinated_partial",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "CloudSync Pro's Team plan includes 500GB of cloud storage per user."
+        ]
+      },
+      {
+        "id": "saas-08",
+        "domain": "saas",
+        "pattern": "hallucinated_contradiction",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "CloudSync Pro's Team plan includes 500GB of cloud storage per user."
+        ]
+      },
+      {
+        "id": "saas-09",
+        "domain": "saas",
+        "pattern": "hallucinated_specifics",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "CloudSync Pro's Team plan includes 500GB of cloud storage per user.\n\nCloudSync Pro encrypts all files at rest using AES-256 and supports two-factor authentication."
+        ]
+      },
+      {
+        "id": "saas-10",
+        "domain": "saas",
+        "pattern": "hallucinated_wrong_entity",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The Team plan costs $12 per user per month when billed annually, or $15 per user per month when billed monthly."
+        ]
+      },
+      {
+        "id": "insurance-01",
+        "domain": "insurance",
+        "pattern": "grounded_verbatim",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "GreenLeaf Travel Insurance covers trip cancellation up to $5,000 per policy."
+        ]
+      },
+      {
+        "id": "insurance-02",
+        "domain": "insurance",
+        "pattern": "grounded_paraphrase",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Claims must be filed within 30 days of the incident to be eligible for reimbursement."
+        ]
+      },
+      {
+        "id": "insurance-03",
+        "domain": "insurance",
+        "pattern": "grounded_multi_fact",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The deductible for medical claims under this policy is $100 per incident.\n\nClaims must be filed within 30 days of the incident to be eligible for reimbursement."
+        ]
+      },
+      {
+        "id": "insurance-04",
+        "domain": "insurance",
+        "pattern": "grounded_negation",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Lost baggage is covered up to $1,200, excluding jewelry and electronics over $500 in value."
+        ]
+      },
+      {
+        "id": "insurance-05",
+        "domain": "insurance",
+        "pattern": "grounded_refusal",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "GreenLeaf Travel Insurance covers trip cancellation up to $5,000 per policy.\n\nLost baggage is covered up to $1,200, excluding jewelry and electronics over $500 in value."
+        ]
+      },
+      {
+        "id": "insurance-06",
+        "domain": "insurance",
+        "pattern": "hallucinated_full",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Claims must be filed within 30 days of the incident to be eligible for reimbursement."
+        ]
+      },
+      {
+        "id": "insurance-07",
+        "domain": "insurance",
+        "pattern": "hallucinated_partial",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Lost baggage is covered up to $1,200, excluding jewelry and electronics over $500 in value."
+        ]
+      },
+      {
+        "id": "insurance-08",
+        "domain": "insurance",
+        "pattern": "hallucinated_contradiction",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The deductible for medical claims under this policy is $100 per incident."
+        ]
+      },
+      {
+        "id": "insurance-09",
+        "domain": "insurance",
+        "pattern": "hallucinated_specifics",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "GreenLeaf Travel Insurance covers trip cancellation up to $5,000 per policy."
+        ]
+      },
+      {
+        "id": "insurance-10",
+        "domain": "insurance",
+        "pattern": "hallucinated_wrong_entity",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "GreenLeaf Travel Insurance covers trip cancellation up to $5,000 per policy.\n\nLost baggage is covered up to $1,200, excluding jewelry and electronics over $500 in value."
+        ]
+      },
+      {
+        "id": "hr-01",
+        "domain": "hr",
+        "pattern": "grounded_verbatim",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Full-time employees accrue 1.5 days of paid leave per month, totaling 18 days per year."
+        ]
+      },
+      {
+        "id": "hr-02",
+        "domain": "hr",
+        "pattern": "grounded_paraphrase",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Unused leave can be carried over to the next calendar year, up to a maximum of 5 days."
+        ]
+      },
+      {
+        "id": "hr-03",
+        "domain": "hr",
+        "pattern": "grounded_multi_fact",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Parental leave is 16 weeks fully paid for primary caregivers and 4 weeks for secondary caregivers.\n\nLeave requests must be submitted through the HR portal at least 7 working days in advance, except for emergencies."
+        ]
+      },
+      {
+        "id": "hr-04",
+        "domain": "hr",
+        "pattern": "grounded_negation",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Full-time employees accrue 1.5 days of paid leave per month, totaling 18 days per year.\n\nUnused leave can be carried over to the next calendar year, up to a maximum of 5 days."
+        ]
+      },
+      {
+        "id": "hr-05",
+        "domain": "hr",
+        "pattern": "grounded_refusal",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Full-time employees accrue 1.5 days of paid leave per month, totaling 18 days per year.\n\nUnused leave can be carried over to the next calendar year, up to a maximum of 5 days."
+        ]
+      },
+      {
+        "id": "hr-06",
+        "domain": "hr",
+        "pattern": "hallucinated_full",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Full-time employees accrue 1.5 days of paid leave per month, totaling 18 days per year."
+        ]
+      },
+      {
+        "id": "hr-07",
+        "domain": "hr",
+        "pattern": "hallucinated_partial",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Parental leave is 16 weeks fully paid for primary caregivers and 4 weeks for secondary caregivers."
+        ]
+      },
+      {
+        "id": "hr-08",
+        "domain": "hr",
+        "pattern": "hallucinated_contradiction",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Leave requests must be submitted through the HR portal at least 7 working days in advance, except for emergencies."
+        ]
+      },
+      {
+        "id": "hr-09",
+        "domain": "hr",
+        "pattern": "hallucinated_specifics",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Full-time employees accrue 1.5 days of paid leave per month, totaling 18 days per year.\n\nLeave requests must be submitted through the HR portal at least 7 working days in advance, except for emergencies."
+        ]
+      },
+      {
+        "id": "hr-10",
+        "domain": "hr",
+        "pattern": "hallucinated_wrong_entity",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Parental leave is 16 weeks fully paid for primary caregivers and 4 weeks for secondary caregivers."
+        ]
+      },
+      {
+        "id": "bank-01",
+        "domain": "bank",
+        "pattern": "grounded_verbatim",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The Aurora credit card has an annual fee of $95, waived for the first year."
+        ]
+      },
+      {
+        "id": "bank-02",
+        "domain": "bank",
+        "pattern": "grounded_paraphrase",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The card offers no foreign transaction fees and includes rental car collision coverage."
+        ]
+      },
+      {
+        "id": "bank-03",
+        "domain": "bank",
+        "pattern": "grounded_multi_fact",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Cardholders earn 3 points per dollar on dining and 1 point per dollar on all other purchases.\n\nLate payments incur a fee of up to $40 and may increase the APR to the penalty rate of 29.99%."
+        ]
+      },
+      {
+        "id": "bank-04",
+        "domain": "bank",
+        "pattern": "grounded_negation",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The Aurora credit card has an annual fee of $95, waived for the first year."
+        ]
+      },
+      {
+        "id": "bank-05",
+        "domain": "bank",
+        "pattern": "grounded_refusal",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The Aurora credit card has an annual fee of $95, waived for the first year.\n\nCardholders earn 3 points per dollar on dining and 1 point per dollar on all other purchases."
+        ]
+      },
+      {
+        "id": "bank-06",
+        "domain": "bank",
+        "pattern": "hallucinated_full",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Cardholders earn 3 points per dollar on dining and 1 point per dollar on all other purchases."
+        ]
+      },
+      {
+        "id": "bank-07",
+        "domain": "bank",
+        "pattern": "hallucinated_partial",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Cardholders earn 3 points per dollar on dining and 1 point per dollar on all other purchases."
+        ]
+      },
+      {
+        "id": "bank-08",
+        "domain": "bank",
+        "pattern": "hallucinated_contradiction",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Cardholders earn 3 points per dollar on dining and 1 point per dollar on all other purchases."
+        ]
+      },
+      {
+        "id": "bank-09",
+        "domain": "bank",
+        "pattern": "hallucinated_specifics",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The Aurora credit card has an annual fee of $95, waived for the first year."
+        ]
+      },
+      {
+        "id": "bank-10",
+        "domain": "bank",
+        "pattern": "hallucinated_wrong_entity",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The Aurora credit card has an annual fee of $95, waived for the first year.\n\nLate payments incur a fee of up to $40 and may increase the APR to the penalty rate of 29.99%."
+        ]
+      },
+      {
+        "id": "helpdesk-01",
+        "domain": "helpdesk",
+        "pattern": "grounded_verbatim",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "VPN sessions automatically disconnect after 12 hours and require re-authentication with MFA."
+        ]
+      },
+      {
+        "id": "helpdesk-02",
+        "domain": "helpdesk",
+        "pattern": "grounded_paraphrase",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The VPN client is supported on Windows 11, macOS 13 or later, and Ubuntu 22.04."
+        ]
+      },
+      {
+        "id": "helpdesk-03",
+        "domain": "helpdesk",
+        "pattern": "grounded_multi_fact",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Remote employees must connect through the corporate VPN before accessing internal systems.\n\nFor VPN issues, open a ticket in the ServiceDesk portal; average response time is 4 business hours."
+        ]
+      },
+      {
+        "id": "helpdesk-04",
+        "domain": "helpdesk",
+        "pattern": "grounded_negation",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The VPN client is supported on Windows 11, macOS 13 or later, and Ubuntu 22.04."
+        ]
+      },
+      {
+        "id": "helpdesk-05",
+        "domain": "helpdesk",
+        "pattern": "grounded_refusal",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Remote employees must connect through the corporate VPN before accessing internal systems.\n\nVPN sessions automatically disconnect after 12 hours and require re-authentication with MFA."
+        ]
+      },
+      {
+        "id": "helpdesk-06",
+        "domain": "helpdesk",
+        "pattern": "hallucinated_full",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "For VPN issues, open a ticket in the ServiceDesk portal; average response time is 4 business hours."
+        ]
+      },
+      {
+        "id": "helpdesk-07",
+        "domain": "helpdesk",
+        "pattern": "hallucinated_partial",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "VPN sessions automatically disconnect after 12 hours and require re-authentication with MFA."
+        ]
+      },
+      {
+        "id": "helpdesk-08",
+        "domain": "helpdesk",
+        "pattern": "hallucinated_contradiction",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "VPN sessions automatically disconnect after 12 hours and require re-authentication with MFA."
+        ]
+      },
+      {
+        "id": "helpdesk-09",
+        "domain": "helpdesk",
+        "pattern": "hallucinated_specifics",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Remote employees must connect through the corporate VPN before accessing internal systems.\n\nThe VPN client is supported on Windows 11, macOS 13 or later, and Ubuntu 22.04."
+        ]
+      },
+      {
+        "id": "helpdesk-10",
+        "domain": "helpdesk",
+        "pattern": "hallucinated_wrong_entity",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "VPN sessions automatically disconnect after 12 hours and require re-authentication with MFA.\n\nFor VPN issues, open a ticket in the ServiceDesk portal; average response time is 4 business hours."
+        ]
+      },
+      {
+        "id": "mt-drone-01",
+        "domain": "drone",
+        "pattern": "grounded_multiturn",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The X100 weighs 249 grams and is available in matte black only."
+        ]
+      },
+      {
+        "id": "mt-saas-01",
+        "domain": "saas",
+        "pattern": "hallucinated_multiturn",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The Team plan costs $12 per user per month when billed annually, or $15 per user per month when billed monthly."
+        ]
+      },
+      {
+        "id": "mt-insurance-01",
+        "domain": "insurance",
+        "pattern": "grounded_multiturn",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Lost baggage is covered up to $1,200, excluding jewelry and electronics over $500 in value."
+        ]
+      },
+      {
+        "id": "mt-helpdesk-01",
+        "domain": "helpdesk",
+        "pattern": "hallucinated_multiturn",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "exhausted_fallback",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "VPN sessions automatically disconnect after 12 hours and require re-authentication with MFA."
+        ]
+      }
+    ],
+    "v2_block": [
+      {
+        "id": "drone-01",
+        "domain": "drone",
+        "pattern": "grounded_verbatim",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The X100 drone has a flight time of 28 minutes on a full charge."
+        ]
+      },
+      {
+        "id": "drone-02",
+        "domain": "drone",
+        "pattern": "grounded_paraphrase",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The X100 weighs 249 grams and is available in matte black only."
+        ]
+      },
+      {
+        "id": "drone-03",
+        "domain": "drone",
+        "pattern": "grounded_multi_fact",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The X100 drone has a flight time of 28 minutes on a full charge.\n\nThe X100 charges fully in 90 minutes using the included fast charger, or 3 hours with a standard USB-C charger."
+        ]
+      },
+      {
+        "id": "drone-04",
+        "domain": "drone",
+        "pattern": "grounded_negation",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The X100 weighs 249 grams and is available in matte black only."
+        ]
+      },
+      {
+        "id": "drone-05",
+        "domain": "drone",
+        "pattern": "grounded_refusal",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The X100 drone has a flight time of 28 minutes on a full charge.\n\nThe X100 weighs 249 grams and is available in matte black only."
+        ]
+      },
+      {
+        "id": "drone-06",
+        "domain": "drone",
+        "pattern": "hallucinated_full",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": "Besides matte black, the X100 comes in arctic white and sunset orange.",
+        "extracted_context": [
+          "The X100 weighs 249 grams and is available in matte black only."
+        ]
+      },
+      {
+        "id": "drone-07",
+        "domain": "drone",
+        "pattern": "hallucinated_partial",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": "The X100 weighs 249 grams and comes with a 2-year manufacturer warranty.",
+        "extracted_context": [
+          "The X100 weighs 249 grams and is available in matte black only."
+        ]
+      },
+      {
+        "id": "drone-08",
+        "domain": "drone",
+        "pattern": "hallucinated_contradiction",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": "The X100 has a flight time of about 45 minutes on a full charge.",
+        "extracted_context": [
+          "The X100 drone has a flight time of 28 minutes on a full charge."
+        ]
+      },
+      {
+        "id": "drone-09",
+        "domain": "drone",
+        "pattern": "hallucinated_specifics",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": "The X100 has a 4K camera with a 1-inch sensor capable of 120 fps slow motion.",
+        "extracted_context": [
+          "The X100 has a maximum transmission range of 8 kilometers and includes a 4K camera with a 1-inch sensor."
+        ]
+      },
+      {
+        "id": "drone-10",
+        "domain": "drone",
+        "pattern": "hallucinated_wrong_entity",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": "With the standard USB-C charger, the X100 charges fully in 90 minutes.",
+        "extracted_context": [
+          "The X100 charges fully in 90 minutes using the included fast charger, or 3 hours with a standard USB-C charger."
+        ]
+      },
+      {
+        "id": "saas-01",
+        "domain": "saas",
+        "pattern": "grounded_verbatim",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "CloudSync Pro's Team plan includes 500GB of cloud storage per user."
+        ]
+      },
+      {
+        "id": "saas-02",
+        "domain": "saas",
+        "pattern": "grounded_paraphrase",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The Team plan costs $12 per user per month when billed annually, or $15 per user per month when billed monthly."
+        ]
+      },
+      {
+        "id": "saas-03",
+        "domain": "saas",
+        "pattern": "grounded_multi_fact",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "CloudSync Pro offers 24/7 customer support via live chat and email only \u2014 there is no phone support option.\n\nCloudSync Pro encrypts all files at rest using AES-256 and supports two-factor authentication."
+        ]
+      },
+      {
+        "id": "saas-04",
+        "domain": "saas",
+        "pattern": "grounded_negation",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "CloudSync Pro offers 24/7 customer support via live chat and email only \u2014 there is no phone support option."
+        ]
+      },
+      {
+        "id": "saas-05",
+        "domain": "saas",
+        "pattern": "grounded_refusal",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "CloudSync Pro's Team plan includes 500GB of cloud storage per user.\n\nThe Team plan costs $12 per user per month when billed annually, or $15 per user per month when billed monthly."
+        ]
+      },
+      {
+        "id": "saas-06",
+        "domain": "saas",
+        "pattern": "hallucinated_full",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": "You can reach CloudSync support at 1-800-555-0192, available around the clock.",
+        "extracted_context": [
+          "CloudSync Pro offers 24/7 customer support via live chat and email only \u2014 there is no phone support option."
+        ]
+      },
+      {
+        "id": "saas-07",
+        "domain": "saas",
+        "pattern": "hallucinated_partial",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": "Each user gets 500GB of storage, with a maximum single-file size of 10GB.",
+        "extracted_context": [
+          "CloudSync Pro's Team plan includes 500GB of cloud storage per user."
+        ]
+      },
+      {
+        "id": "saas-08",
+        "domain": "saas",
+        "pattern": "hallucinated_contradiction",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": "The Team plan includes unlimited storage for every user.",
+        "extracted_context": [
+          "CloudSync Pro's Team plan includes 500GB of cloud storage per user."
+        ]
+      },
+      {
+        "id": "saas-09",
+        "domain": "saas",
+        "pattern": "hallucinated_specifics",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": "CloudSync Pro was founded in 2015 in Austin and now serves over 2 million users.",
+        "extracted_context": [
+          "CloudSync Pro's Team plan includes 500GB of cloud storage per user.\n\nCloudSync Pro encrypts all files at rest using AES-256 and supports two-factor authentication."
+        ]
+      },
+      {
+        "id": "saas-10",
+        "domain": "saas",
+        "pattern": "hallucinated_wrong_entity",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": "Billed annually, the Team plan costs $15 per user per month.",
+        "extracted_context": [
+          "The Team plan costs $12 per user per month when billed annually, or $15 per user per month when billed monthly."
+        ]
+      },
+      {
+        "id": "insurance-01",
+        "domain": "insurance",
+        "pattern": "grounded_verbatim",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "GreenLeaf Travel Insurance covers trip cancellation up to $5,000 per policy."
+        ]
+      },
+      {
+        "id": "insurance-02",
+        "domain": "insurance",
+        "pattern": "grounded_paraphrase",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Claims must be filed within 30 days of the incident to be eligible for reimbursement."
+        ]
+      },
+      {
+        "id": "insurance-03",
+        "domain": "insurance",
+        "pattern": "grounded_multi_fact",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The deductible for medical claims under this policy is $100 per incident.\n\nClaims must be filed within 30 days of the incident to be eligible for reimbursement."
+        ]
+      },
+      {
+        "id": "insurance-04",
+        "domain": "insurance",
+        "pattern": "grounded_negation",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Lost baggage is covered up to $1,200, excluding jewelry and electronics over $500 in value."
+        ]
+      },
+      {
+        "id": "insurance-05",
+        "domain": "insurance",
+        "pattern": "grounded_refusal",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "GreenLeaf Travel Insurance covers trip cancellation up to $5,000 per policy.\n\nLost baggage is covered up to $1,200, excluding jewelry and electronics over $500 in value."
+        ]
+      },
+      {
+        "id": "insurance-06",
+        "domain": "insurance",
+        "pattern": "hallucinated_full",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": "Call the GreenLeaf claims line at +44 20 7946 0958, open weekdays 9 to 5.",
+        "extracted_context": [
+          "Claims must be filed within 30 days of the incident to be eligible for reimbursement."
+        ]
+      },
+      {
+        "id": "insurance-07",
+        "domain": "insurance",
+        "pattern": "hallucinated_partial",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": "Lost baggage is covered up to $1,200, and you'll receive a $50 daily allowance while your bag is missing.",
+        "extracted_context": [
+          "Lost baggage is covered up to $1,200, excluding jewelry and electronics over $500 in value."
+        ]
+      },
+      {
+        "id": "insurance-08",
+        "domain": "insurance",
+        "pattern": "hallucinated_contradiction",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": "There is no deductible for medical claims under this policy.",
+        "extracted_context": [
+          "The deductible for medical claims under this policy is $100 per incident."
+        ]
+      },
+      {
+        "id": "insurance-09",
+        "domain": "insurance",
+        "pattern": "hallucinated_specifics",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": "GreenLeaf has been insuring travelers since 1987.",
+        "extracted_context": [
+          "GreenLeaf Travel Insurance covers trip cancellation up to $5,000 per policy."
+        ]
+      },
+      {
+        "id": "insurance-10",
+        "domain": "insurance",
+        "pattern": "hallucinated_wrong_entity",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": "Lost baggage is covered up to $5,000.",
+        "extracted_context": [
+          "GreenLeaf Travel Insurance covers trip cancellation up to $5,000 per policy.\n\nLost baggage is covered up to $1,200, excluding jewelry and electronics over $500 in value."
+        ]
+      },
+      {
+        "id": "hr-01",
+        "domain": "hr",
+        "pattern": "grounded_verbatim",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Full-time employees accrue 1.5 days of paid leave per month, totaling 18 days per year."
+        ]
+      },
+      {
+        "id": "hr-02",
+        "domain": "hr",
+        "pattern": "grounded_paraphrase",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Unused leave can be carried over to the next calendar year, up to a maximum of 5 days."
+        ]
+      },
+      {
+        "id": "hr-03",
+        "domain": "hr",
+        "pattern": "grounded_multi_fact",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Parental leave is 16 weeks fully paid for primary caregivers and 4 weeks for secondary caregivers.\n\nLeave requests must be submitted through the HR portal at least 7 working days in advance, except for emergencies."
+        ]
+      },
+      {
+        "id": "hr-04",
+        "domain": "hr",
+        "pattern": "grounded_negation",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Full-time employees accrue 1.5 days of paid leave per month, totaling 18 days per year.\n\nUnused leave can be carried over to the next calendar year, up to a maximum of 5 days."
+        ]
+      },
+      {
+        "id": "hr-05",
+        "domain": "hr",
+        "pattern": "grounded_refusal",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Full-time employees accrue 1.5 days of paid leave per month, totaling 18 days per year.\n\nUnused leave can be carried over to the next calendar year, up to a maximum of 5 days."
+        ]
+      },
+      {
+        "id": "hr-06",
+        "domain": "hr",
+        "pattern": "hallucinated_full",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": "Unused leave is encashed at 150% of your daily salary at year end.",
+        "extracted_context": [
+          "Full-time employees accrue 1.5 days of paid leave per month, totaling 18 days per year."
+        ]
+      },
+      {
+        "id": "hr-07",
+        "domain": "hr",
+        "pattern": "hallucinated_partial",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": "Primary caregivers receive 16 weeks fully paid, which can be extended by another 8 weeks unpaid.",
+        "extracted_context": [
+          "Parental leave is 16 weeks fully paid for primary caregivers and 4 weeks for secondary caregivers."
+        ]
+      },
+      {
+        "id": "hr-08",
+        "domain": "hr",
+        "pattern": "hallucinated_contradiction",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": "Leave requests only need 2 working days' notice.",
+        "extracted_context": [
+          "Leave requests must be submitted through the HR portal at least 7 working days in advance, except for emergencies."
+        ]
+      },
+      {
+        "id": "hr-09",
+        "domain": "hr",
+        "pattern": "hallucinated_specifics",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": "This leave policy was last revised in March 2024 by the compensation committee.",
+        "extracted_context": [
+          "Full-time employees accrue 1.5 days of paid leave per month, totaling 18 days per year.\n\nLeave requests must be submitted through the HR portal at least 7 working days in advance, except for emergencies."
+        ]
+      },
+      {
+        "id": "hr-10",
+        "domain": "hr",
+        "pattern": "hallucinated_wrong_entity",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": "Secondary caregivers receive 16 weeks of fully paid parental leave.",
+        "extracted_context": [
+          "Parental leave is 16 weeks fully paid for primary caregivers and 4 weeks for secondary caregivers."
+        ]
+      },
+      {
+        "id": "bank-01",
+        "domain": "bank",
+        "pattern": "grounded_verbatim",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The Aurora credit card has an annual fee of $95, waived for the first year."
+        ]
+      },
+      {
+        "id": "bank-02",
+        "domain": "bank",
+        "pattern": "grounded_paraphrase",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The card offers no foreign transaction fees and includes rental car collision coverage."
+        ]
+      },
+      {
+        "id": "bank-03",
+        "domain": "bank",
+        "pattern": "grounded_multi_fact",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Cardholders earn 3 points per dollar on dining and 1 point per dollar on all other purchases.\n\nLate payments incur a fee of up to $40 and may increase the APR to the penalty rate of 29.99%."
+        ]
+      },
+      {
+        "id": "bank-04",
+        "domain": "bank",
+        "pattern": "grounded_negation",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The Aurora credit card has an annual fee of $95, waived for the first year."
+        ]
+      },
+      {
+        "id": "bank-05",
+        "domain": "bank",
+        "pattern": "grounded_refusal",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The Aurora credit card has an annual fee of $95, waived for the first year.\n\nCardholders earn 3 points per dollar on dining and 1 point per dollar on all other purchases."
+        ]
+      },
+      {
+        "id": "bank-06",
+        "domain": "bank",
+        "pattern": "hallucinated_full",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": "New cardholders receive 60,000 bonus points after spending $4,000 in the first three months.",
+        "extracted_context": [
+          "Cardholders earn 3 points per dollar on dining and 1 point per dollar on all other purchases."
+        ]
+      },
+      {
+        "id": "bank-07",
+        "domain": "bank",
+        "pattern": "hallucinated_partial",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": "You earn 3 points per dollar on dining, 1 point elsewhere, and points transfer to 12 airline partners.",
+        "extracted_context": [
+          "Cardholders earn 3 points per dollar on dining and 1 point per dollar on all other purchases."
+        ]
+      },
+      {
+        "id": "bank-08",
+        "domain": "bank",
+        "pattern": "hallucinated_contradiction",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": "Dining purchases earn 5 points per dollar.",
+        "extracted_context": [
+          "Cardholders earn 3 points per dollar on dining and 1 point per dollar on all other purchases."
+        ]
+      },
+      {
+        "id": "bank-09",
+        "domain": "bank",
+        "pattern": "hallucinated_specifics",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": "The Aurora card is issued by Meridian National Bank.",
+        "extracted_context": [
+          "The Aurora credit card has an annual fee of $95, waived for the first year."
+        ]
+      },
+      {
+        "id": "bank-10",
+        "domain": "bank",
+        "pattern": "hallucinated_wrong_entity",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": "Late payments incur a fee of up to $95.",
+        "extracted_context": [
+          "The Aurora credit card has an annual fee of $95, waived for the first year.\n\nLate payments incur a fee of up to $40 and may increase the APR to the penalty rate of 29.99%."
+        ]
+      },
+      {
+        "id": "helpdesk-01",
+        "domain": "helpdesk",
+        "pattern": "grounded_verbatim",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "VPN sessions automatically disconnect after 12 hours and require re-authentication with MFA."
+        ]
+      },
+      {
+        "id": "helpdesk-02",
+        "domain": "helpdesk",
+        "pattern": "grounded_paraphrase",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The VPN client is supported on Windows 11, macOS 13 or later, and Ubuntu 22.04."
+        ]
+      },
+      {
+        "id": "helpdesk-03",
+        "domain": "helpdesk",
+        "pattern": "grounded_multi_fact",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Remote employees must connect through the corporate VPN before accessing internal systems.\n\nFor VPN issues, open a ticket in the ServiceDesk portal; average response time is 4 business hours."
+        ]
+      },
+      {
+        "id": "helpdesk-04",
+        "domain": "helpdesk",
+        "pattern": "grounded_negation",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The VPN client is supported on Windows 11, macOS 13 or later, and Ubuntu 22.04."
+        ]
+      },
+      {
+        "id": "helpdesk-05",
+        "domain": "helpdesk",
+        "pattern": "grounded_refusal",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Remote employees must connect through the corporate VPN before accessing internal systems.\n\nVPN sessions automatically disconnect after 12 hours and require re-authentication with MFA."
+        ]
+      },
+      {
+        "id": "helpdesk-06",
+        "domain": "helpdesk",
+        "pattern": "hallucinated_full",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": "You can reach the helpdesk at extension 4357 between 8am and 6pm.",
+        "extracted_context": [
+          "For VPN issues, open a ticket in the ServiceDesk portal; average response time is 4 business hours."
+        ]
+      },
+      {
+        "id": "helpdesk-07",
+        "domain": "helpdesk",
+        "pattern": "hallucinated_partial",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": "Sessions disconnect after 12 hours, and you can extend them once by 4 hours from the client settings.",
+        "extracted_context": [
+          "VPN sessions automatically disconnect after 12 hours and require re-authentication with MFA."
+        ]
+      },
+      {
+        "id": "helpdesk-08",
+        "domain": "helpdesk",
+        "pattern": "hallucinated_contradiction",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": "VPN sessions stay active for 24 hours before disconnecting.",
+        "extracted_context": [
+          "VPN sessions automatically disconnect after 12 hours and require re-authentication with MFA."
+        ]
+      },
+      {
+        "id": "helpdesk-09",
+        "domain": "helpdesk",
+        "pattern": "hallucinated_specifics",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": "The company uses Cisco AnyConnect version 5.2 as its VPN client.",
+        "extracted_context": [
+          "Remote employees must connect through the corporate VPN before accessing internal systems.\n\nThe VPN client is supported on Windows 11, macOS 13 or later, and Ubuntu 22.04."
+        ]
+      },
+      {
+        "id": "helpdesk-10",
+        "domain": "helpdesk",
+        "pattern": "hallucinated_wrong_entity",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": "Support responds within 12 hours on average.",
+        "extracted_context": [
+          "VPN sessions automatically disconnect after 12 hours and require re-authentication with MFA.\n\nFor VPN issues, open a ticket in the ServiceDesk portal; average response time is 4 business hours."
+        ]
+      },
+      {
+        "id": "mt-drone-01",
+        "domain": "drone",
+        "pattern": "grounded_multiturn",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "The X100 weighs 249 grams and is available in matte black only."
+        ]
+      },
+      {
+        "id": "mt-saas-01",
+        "domain": "saas",
+        "pattern": "hallucinated_multiturn",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": "Billed monthly, it's $25 per user per month.",
+        "extracted_context": [
+          "The Team plan costs $12 per user per month when billed annually, or $15 per user per month when billed monthly."
+        ]
+      },
+      {
+        "id": "mt-insurance-01",
+        "domain": "insurance",
+        "pattern": "grounded_multiturn",
+        "label": "grounded",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "passed_unchanged",
+        "enforcement_correct": true,
+        "blocked_reason": null,
+        "extracted_context": [
+          "Lost baggage is covered up to $1,200, excluding jewelry and electronics over $500 in value."
+        ]
+      },
+      {
+        "id": "mt-helpdesk-01",
+        "domain": "helpdesk",
+        "pattern": "hallucinated_multiturn",
+        "label": "hallucinated",
+        "extraction_ok": true,
+        "question_ok": true,
+        "outcome": "blocked",
+        "enforcement_correct": true,
+        "blocked_reason": "Only once per week \u2014 sessions are persistent.",
+        "extracted_context": [
+          "VPN sessions automatically disconnect after 12 hours and require re-authentication with MFA."
+        ]
+      }
+    ]
+  },
+  "summary": {
+    "configs": {
+      "v1_retry": {
+        "total": 64,
+        "correct": 64,
+        "accuracy": 1.0,
+        "by_domain": {
+          "drone": {
+            "total": 11,
+            "correct": 11
+          },
+          "saas": {
+            "total": 11,
+            "correct": 11
+          },
+          "insurance": {
+            "total": 11,
+            "correct": 11
+          },
+          "hr": {
+            "total": 10,
+            "correct": 10
+          },
+          "bank": {
+            "total": 10,
+            "correct": 10
+          },
+          "helpdesk": {
+            "total": 11,
+            "correct": 11
+          }
+        },
+        "by_pattern": {
+          "grounded_verbatim": {
+            "total": 6,
+            "correct": 6
+          },
+          "grounded_paraphrase": {
+            "total": 6,
+            "correct": 6
+          },
+          "grounded_multi_fact": {
+            "total": 6,
+            "correct": 6
+          },
+          "grounded_negation": {
+            "total": 6,
+            "correct": 6
+          },
+          "grounded_refusal": {
+            "total": 6,
+            "correct": 6
+          },
+          "hallucinated_full": {
+            "total": 6,
+            "correct": 6
+          },
+          "hallucinated_partial": {
+            "total": 6,
+            "correct": 6
+          },
+          "hallucinated_contradiction": {
+            "total": 6,
+            "correct": 6
+          },
+          "hallucinated_specifics": {
+            "total": 6,
+            "correct": 6
+          },
+          "hallucinated_wrong_entity": {
+            "total": 6,
+            "correct": 6
+          },
+          "grounded_multiturn": {
+            "total": 2,
+            "correct": 2
+          },
+          "hallucinated_multiturn": {
+            "total": 2,
+            "correct": 2
+          }
+        },
+        "by_label": {
+          "grounded": {
+            "total": 32,
+            "correct": 32
+          },
+          "hallucinated": {
+            "total": 32,
+            "correct": 32
+          }
+        },
+        "failures": []
+      },
+      "v1_block": {
+        "total": 64,
+        "correct": 64,
+        "accuracy": 1.0,
+        "by_domain": {
+          "drone": {
+            "total": 11,
+            "correct": 11
+          },
+          "saas": {
+            "total": 11,
+            "correct": 11
+          },
+          "insurance": {
+            "total": 11,
+            "correct": 11
+          },
+          "hr": {
+            "total": 10,
+            "correct": 10
+          },
+          "bank": {
+            "total": 10,
+            "correct": 10
+          },
+          "helpdesk": {
+            "total": 11,
+            "correct": 11
+          }
+        },
+        "by_pattern": {
+          "grounded_verbatim": {
+            "total": 6,
+            "correct": 6
+          },
+          "grounded_paraphrase": {
+            "total": 6,
+            "correct": 6
+          },
+          "grounded_multi_fact": {
+            "total": 6,
+            "correct": 6
+          },
+          "grounded_negation": {
+            "total": 6,
+            "correct": 6
+          },
+          "grounded_refusal": {
+            "total": 6,
+            "correct": 6
+          },
+          "hallucinated_full": {
+            "total": 6,
+            "correct": 6
+          },
+          "hallucinated_partial": {
+            "total": 6,
+            "correct": 6
+          },
+          "hallucinated_contradiction": {
+            "total": 6,
+            "correct": 6
+          },
+          "hallucinated_specifics": {
+            "total": 6,
+            "correct": 6
+          },
+          "hallucinated_wrong_entity": {
+            "total": 6,
+            "correct": 6
+          },
+          "grounded_multiturn": {
+            "total": 2,
+            "correct": 2
+          },
+          "hallucinated_multiturn": {
+            "total": 2,
+            "correct": 2
+          }
+        },
+        "by_label": {
+          "grounded": {
+            "total": 32,
+            "correct": 32
+          },
+          "hallucinated": {
+            "total": 32,
+            "correct": 32
+          }
+        },
+        "failures": []
+      },
+      "v2_retry": {
+        "total": 64,
+        "correct": 64,
+        "accuracy": 1.0,
+        "by_domain": {
+          "drone": {
+            "total": 11,
+            "correct": 11
+          },
+          "saas": {
+            "total": 11,
+            "correct": 11
+          },
+          "insurance": {
+            "total": 11,
+            "correct": 11
+          },
+          "hr": {
+            "total": 10,
+            "correct": 10
+          },
+          "bank": {
+            "total": 10,
+            "correct": 10
+          },
+          "helpdesk": {
+            "total": 11,
+            "correct": 11
+          }
+        },
+        "by_pattern": {
+          "grounded_verbatim": {
+            "total": 6,
+            "correct": 6
+          },
+          "grounded_paraphrase": {
+            "total": 6,
+            "correct": 6
+          },
+          "grounded_multi_fact": {
+            "total": 6,
+            "correct": 6
+          },
+          "grounded_negation": {
+            "total": 6,
+            "correct": 6
+          },
+          "grounded_refusal": {
+            "total": 6,
+            "correct": 6
+          },
+          "hallucinated_full": {
+            "total": 6,
+            "correct": 6
+          },
+          "hallucinated_partial": {
+            "total": 6,
+            "correct": 6
+          },
+          "hallucinated_contradiction": {
+            "total": 6,
+            "correct": 6
+          },
+          "hallucinated_specifics": {
+            "total": 6,
+            "correct": 6
+          },
+          "hallucinated_wrong_entity": {
+            "total": 6,
+            "correct": 6
+          },
+          "grounded_multiturn": {
+            "total": 2,
+            "correct": 2
+          },
+          "hallucinated_multiturn": {
+            "total": 2,
+            "correct": 2
+          }
+        },
+        "by_label": {
+          "grounded": {
+            "total": 32,
+            "correct": 32
+          },
+          "hallucinated": {
+            "total": 32,
+            "correct": 32
+          }
+        },
+        "failures": []
+      },
+      "v2_block": {
+        "total": 64,
+        "correct": 64,
+        "accuracy": 1.0,
+        "by_domain": {
+          "drone": {
+            "total": 11,
+            "correct": 11
+          },
+          "saas": {
+            "total": 11,
+            "correct": 11
+          },
+          "insurance": {
+            "total": 11,
+            "correct": 11
+          },
+          "hr": {
+            "total": 10,
+            "correct": 10
+          },
+          "bank": {
+            "total": 10,
+            "correct": 10
+          },
+          "helpdesk": {
+            "total": 11,
+            "correct": 11
+          }
+        },
+        "by_pattern": {
+          "grounded_verbatim": {
+            "total": 6,
+            "correct": 6
+          },
+          "grounded_paraphrase": {
+            "total": 6,
+            "correct": 6
+          },
+          "grounded_multi_fact": {
+            "total": 6,
+            "correct": 6
+          },
+          "grounded_negation": {
+            "total": 6,
+            "correct": 6
+          },
+          "grounded_refusal": {
+            "total": 6,
+            "correct": 6
+          },
+          "hallucinated_full": {
+            "total": 6,
+            "correct": 6
+          },
+          "hallucinated_partial": {
+            "total": 6,
+            "correct": 6
+          },
+          "hallucinated_contradiction": {
+            "total": 6,
+            "correct": 6
+          },
+          "hallucinated_specifics": {
+            "total": 6,
+            "correct": 6
+          },
+          "hallucinated_wrong_entity": {
+            "total": 6,
+            "correct": 6
+          },
+          "grounded_multiturn": {
+            "total": 2,
+            "correct": 2
+          },
+          "hallucinated_multiturn": {
+            "total": 2,
+            "correct": 2
+          }
+        },
+        "by_label": {
+          "grounded": {
+            "total": 32,
+            "correct": 32
+          },
+          "hallucinated": {
+            "total": 32,
+            "correct": 32
+          }
+        },
+        "failures": []
+      }
+    },
+    "extraction": {
+      "total_rows": 64,
+      "context_extraction_correct": 64,
+      "question_extraction_correct": 64,
+      "multiturn_rows": 4,
+      "multiturn_context_correct": 4,
+      "failures": []
+    }
+  }
+}
