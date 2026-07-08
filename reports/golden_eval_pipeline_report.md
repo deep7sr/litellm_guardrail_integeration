@@ -1,6 +1,6 @@
 # Golden Dataset Evaluation — Pipeline (Structural) Mode
 
-Generated: 2026-07-08T16:07:08.322988+00:00
+Generated: 2026-07-08T16:18:04.760081+00:00
 
 **What this validates:** the guardrail's real extraction and enforcement code, run against every row, with the judge's score replaced by an oracle equal to the row's label. This proves the code is structurally correct — it does **not** measure the real judge model's scoring accuracy (see the Live Mode section).
 
