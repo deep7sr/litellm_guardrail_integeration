@@ -76,10 +76,16 @@ JUDGE_TIMEOUT_SECONDS = float(os.environ.get("JUDGE_TIMEOUT_SECONDS", "60"))
 # Part of the OpenAI RAG contract — the header apps prepend to the
 # retrieved-context assistant message.
 EVIDENCE_MARKER = os.environ.get("EVIDENCE_MARKER", "--- Retrieved Evidence ---")
-# Judge calls occasionally fail transiently (e.g. the judge model emits
-# malformed JSON for RAGAS's internal claim decomposition/verification step).
-# Retrying the scoring call itself — not just the outer generate/regenerate
-# loop — absorbs these without falling through to the fail-open path.
+# RAGAS's InstructorModelArgs defaults max_tokens to 1024 for the judge's
+# internal claim-decomposition/verification JSON. Answers with several
+# claims can overflow that, truncating the JSON mid-generation — seen live
+# as a deterministic "Failed to validate JSON" error that no amount of
+# retrying fixes, since the token budget is the same on every attempt.
+JUDGE_MAX_TOKENS = int(os.environ.get("JUDGE_MAX_TOKENS", "4096"))
+# Separately, judge calls can still fail for genuinely transient reasons
+# (network hiccups, rate limits). Retrying the scoring call itself — not
+# just the outer generate/regenerate loop — absorbs those without falling
+# through to the fail-open path.
 SCORE_RETRY_ATTEMPTS = int(os.environ.get("SCORE_RETRY_ATTEMPTS", "2"))
 
 RETRY_FEEDBACK = (
@@ -103,7 +109,7 @@ _proxy_client = AsyncOpenAI(
     base_url=PROXY_BASE_URL,
     api_key=os.environ.get("LITELLM_MASTER_KEY", "sk-1234"),
 )
-_judge_llm = llm_factory(JUDGE_MODEL, client=_proxy_client)
+_judge_llm = llm_factory(JUDGE_MODEL, client=_proxy_client, max_tokens=JUDGE_MAX_TOKENS)
 _scorer = Faithfulness(llm=_judge_llm)
 
 _db_pool: asyncpg.Pool | None = None
