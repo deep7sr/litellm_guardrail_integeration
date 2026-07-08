@@ -230,7 +230,12 @@ async def run_live(dataset, base_url, api_key, judge_model):
     from ragas.metrics.collections import Faithfulness
 
     client = AsyncOpenAI(base_url=base_url, api_key=api_key)
-    judge = llm_factory(judge_model, client=client)
+    # RAGAS's InstructorModelArgs defaults max_tokens to 1024 for the judge's
+    # internal claim-decomposition JSON, which truncates on multi-claim
+    # answers (seen live as a deterministic scoring error, not noise — see
+    # the same fix in guardrail/faithfulness_guardrail.py). Match it here so
+    # complex/hallucinated rows aren't silently dropped from the sweep.
+    judge = llm_factory(judge_model, client=client, max_tokens=4096)
     scorer = Faithfulness(llm=judge)
 
     scored = []
