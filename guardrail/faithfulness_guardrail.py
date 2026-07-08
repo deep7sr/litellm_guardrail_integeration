@@ -76,6 +76,11 @@ JUDGE_TIMEOUT_SECONDS = float(os.environ.get("JUDGE_TIMEOUT_SECONDS", "60"))
 # Part of the OpenAI RAG contract — the header apps prepend to the
 # retrieved-context assistant message.
 EVIDENCE_MARKER = os.environ.get("EVIDENCE_MARKER", "--- Retrieved Evidence ---")
+# Judge calls occasionally fail transiently (e.g. the judge model emits
+# malformed JSON for RAGAS's internal claim decomposition/verification step).
+# Retrying the scoring call itself — not just the outer generate/regenerate
+# loop — absorbs these without falling through to the fail-open path.
+SCORE_RETRY_ATTEMPTS = int(os.environ.get("SCORE_RETRY_ATTEMPTS", "2"))
 
 RETRY_FEEDBACK = (
     "That answer was not fully grounded in the context. Regenerate it using ONLY "
@@ -202,21 +207,25 @@ def _raw_user_message(messages: list) -> str:
 
 
 async def _score(user_message: str, contexts: list[str], answer: str) -> float | None:
-    try:
-        result = await asyncio.wait_for(
-            _scorer.ascore(user_input=user_message, response=answer, retrieved_contexts=contexts),
-            timeout=JUDGE_TIMEOUT_SECONDS,
-        )
-        raw = result.value
-    except asyncio.TimeoutError:
-        logger.warning(f"[faithfulness] scoring timed out after {JUDGE_TIMEOUT_SECONDS}s")
-        return None
-    except Exception as e:
-        logger.warning(f"[faithfulness] scoring failed: {e}")
-        return None
-    # RAGAS returns NaN when the answer contains no checkable claims
-    # (e.g. an honest "I don't know") — treat that as fully grounded.
-    return 1.0 if np.isnan(raw) else float(raw)
+    last_error = None
+    for attempt in range(SCORE_RETRY_ATTEMPTS + 1):
+        try:
+            result = await asyncio.wait_for(
+                _scorer.ascore(user_input=user_message, response=answer, retrieved_contexts=contexts),
+                timeout=JUDGE_TIMEOUT_SECONDS,
+            )
+            raw = result.value
+            # RAGAS returns NaN when the answer contains no checkable claims
+            # (e.g. an honest "I don't know") — treat that as fully grounded.
+            return 1.0 if np.isnan(raw) else float(raw)
+        except asyncio.TimeoutError:
+            last_error = f"timed out after {JUDGE_TIMEOUT_SECONDS}s"
+        except Exception as e:
+            last_error = str(e)
+        if attempt < SCORE_RETRY_ATTEMPTS:
+            logger.warning(f"[faithfulness] scoring attempt {attempt + 1} failed ({last_error}), retrying")
+    logger.warning(f"[faithfulness] scoring failed after {SCORE_RETRY_ATTEMPTS + 1} attempt(s): {last_error}")
+    return None
 
 
 class FaithfulnessGuardrail(CustomGuardrail):

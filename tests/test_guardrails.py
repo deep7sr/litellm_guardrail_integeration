@@ -140,6 +140,44 @@ def test_strip_reasoning_removes_think_blocks():
     assert fg._strip_reasoning("") == ""
 
 
+class FakeScoreResult:
+    def __init__(self, value):
+        self.value = value
+
+
+async def test_score_retries_transient_judge_failures_then_succeeds(monkeypatch):
+    """A malformed-JSON-style judge error (seen live: Groq's
+    json_validate_failed on RAGAS's internal claim decomposition) should be
+    absorbed by retrying the scoring call itself, not just failing open."""
+    monkeypatch.setattr(fg, "SCORE_RETRY_ATTEMPTS", 2)
+    calls = {"n": 0}
+
+    async def flaky_ascore(**kwargs):
+        calls["n"] += 1
+        if calls["n"] < 3:
+            raise RuntimeError("json_validate_failed")
+        return FakeScoreResult(0.9)
+
+    monkeypatch.setattr(fg._scorer, "ascore", flaky_ascore)
+    score = await fg._score("q", [CTX], "answer")
+    assert score == 0.9
+    assert calls["n"] == 3
+
+
+async def test_score_gives_up_after_retry_budget_exhausted(monkeypatch):
+    monkeypatch.setattr(fg, "SCORE_RETRY_ATTEMPTS", 2)
+    calls = {"n": 0}
+
+    async def always_fails(**kwargs):
+        calls["n"] += 1
+        raise RuntimeError("json_validate_failed")
+
+    monkeypatch.setattr(fg._scorer, "ascore", always_fails)
+    score = await fg._score("q", [CTX], "answer")
+    assert score is None
+    assert calls["n"] == 3  # 1 initial attempt + 2 retries
+
+
 def test_internal_retry_tag_detected_in_both_metadata_shapes():
     assert fg._is_internal_retry({"metadata": {"ragas_internal_retry": True}})
     assert fg._is_internal_retry({"metadata": {"requester_metadata": {"ragas_internal_retry": True}}})
