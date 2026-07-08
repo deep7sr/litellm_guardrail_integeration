@@ -23,8 +23,8 @@ Flow:
        retry (default) — regenerate with corrective feedback up to
                          MAX_ATTEMPTS, then serve FALLBACK_TEXT
        block           — raise a structured 400 back to the caller
-  5. Log every attempt (user message, question, context, answer, score,
-     verdict) to Postgres for the dashboard.
+  5. Log every attempt (user message, context, answer, score, verdict) to
+     Postgres for the dashboard.
 
 Requests with no evidence-marked assistant message pass through unscored
 (verdict="unscored") — the guardrail cannot judge groundedness without
@@ -130,7 +130,6 @@ async def get_db_pool() -> asyncpg.Pool | None:
                         score DOUBLE PRECISION,
                         verdict TEXT NOT NULL,
                         target_model TEXT,
-                        question TEXT,
                         answer_snippet TEXT
                     )
                 """)
@@ -147,7 +146,7 @@ async def get_db_pool() -> asyncpg.Pool | None:
 
 
 async def _log_event(req_id, attempt, score, verdict, target_model,
-                     user_message, question, context, answer, reason=None):
+                     user_message, context, answer, reason=None):
     pool = await get_db_pool()
     if pool is None:
         return
@@ -156,10 +155,10 @@ async def _log_event(req_id, attempt, score, verdict, target_model,
             await conn.execute(
                 """INSERT INTO faithfulness_events
                    (req_id, attempt, score, verdict, target_model, user_message,
-                    question, context_snippet, answer_snippet, reason)
-                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)""",
+                    context_snippet, answer_snippet, reason)
+                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)""",
                 req_id, attempt, score, verdict, target_model,
-                (user_message or "")[:1000], (question or "")[:1000],
+                (user_message or "")[:1000],
                 (context or "")[:2000], (answer or "")[:1000],
                 (reason or "")[:1000] or None,
             )
@@ -202,10 +201,10 @@ def _raw_user_message(messages: list) -> str:
     )
 
 
-async def _score(question: str, contexts: list[str], answer: str) -> float | None:
+async def _score(user_message: str, contexts: list[str], answer: str) -> float | None:
     try:
         result = await asyncio.wait_for(
-            _scorer.ascore(user_input=question, response=answer, retrieved_contexts=contexts),
+            _scorer.ascore(user_input=user_message, response=answer, retrieved_contexts=contexts),
             timeout=JUDGE_TIMEOUT_SECONDS,
         )
         raw = result.value
@@ -228,7 +227,7 @@ class FaithfulnessGuardrail(CustomGuardrail):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    async def _failure_reason(self, question: str, contexts: list[str],
+    async def _failure_reason(self, user_message: str, contexts: list[str],
                               answer: str, score: float) -> str | None:
         """Optional explanation of WHY an answer failed. Base returns None
         (no reason generated, no extra judge calls)."""
@@ -267,7 +266,6 @@ class FaithfulnessGuardrail(CustomGuardrail):
 
         contexts = _extract_contexts(messages)
         user_message = _raw_user_message(messages)
-        question = user_message
         context_text = "\n---\n".join(contexts) if contexts else None
 
         if contexts is None:
@@ -276,32 +274,32 @@ class FaithfulnessGuardrail(CustomGuardrail):
             # unguarded traffic is visible on the dashboard.
             logger.info(f"[faithfulness] req={req_id} no evidence-marked context found, passing unscored")
             await _log_event(req_id, 0, None, "unscored", target_model,
-                             user_message, question, context_text, answer)
+                             user_message, context_text, answer)
             return response
 
         threshold = PASS_THRESHOLD
         on_fail = DEFAULT_ON_FAIL if DEFAULT_ON_FAIL in ("block", "retry") else "retry"
 
-        score = await _score(question, contexts, answer)
+        score = await _score(user_message, contexts, answer)
         if score is None:
             # Fail open on judge/scoring errors so the proxy never hard-fails
             # traffic because of a scoring-infrastructure problem. This is a
             # deliberate policy choice — flip here if fail-closed is required.
             await _log_event(req_id, 0, None, "error", target_model,
-                             user_message, question, context_text, answer)
+                             user_message, context_text, answer)
             return response
 
         logger.info(f"[faithfulness] req={req_id} attempt=0 score={score:.3f} threshold={threshold} on_fail={on_fail}")
 
         if score >= threshold:
             await _log_event(req_id, 0, score, "passed", target_model,
-                             user_message, question, context_text, answer)
+                             user_message, context_text, answer)
             return response
 
         if on_fail == "block":
-            reason = await self._failure_reason(question, contexts, answer, score)
+            reason = await self._failure_reason(user_message, contexts, answer, score)
             await _log_event(req_id, 0, score, "blocked", target_model,
-                             user_message, question, context_text, answer, reason)
+                             user_message, context_text, answer, reason)
             detail = {
                 "error": "Response failed faithfulness guardrail",
                 "guardrail": "faithfulness-guardrail",
@@ -318,18 +316,18 @@ class FaithfulnessGuardrail(CustomGuardrail):
         while True:
             if attempt >= MAX_RETRIES:
                 logger.warning(f"[faithfulness] req={req_id} EXHAUSTED {MAX_RETRIES} retries, final score={score:.3f}")
-                reason = await self._failure_reason(question, contexts, answer, score)
+                reason = await self._failure_reason(user_message, contexts, answer, score)
                 await _log_event(req_id, attempt, score, "exhausted", target_model,
-                                 user_message, question, context_text, answer, reason)
+                                 user_message, context_text, answer, reason)
                 fallback = FALLBACK_TEXT
                 if reason:
                     fallback = f"{FALLBACK_TEXT} ({reason})"
                 response.choices[0].message.content = fallback
                 return response
 
-            reason = await self._failure_reason(question, contexts, answer, score)
+            reason = await self._failure_reason(user_message, contexts, answer, score)
             await _log_event(req_id, attempt, score, "retrying", target_model,
-                             user_message, question, context_text, answer, reason)
+                             user_message, context_text, answer, reason)
             attempt += 1
             feedback = RETRY_FEEDBACK
             if reason:
@@ -347,14 +345,14 @@ class FaithfulnessGuardrail(CustomGuardrail):
             except Exception as e:
                 logger.warning(f"[faithfulness] req={req_id} regeneration call failed: {e}")
                 await _log_event(req_id, attempt, None, "error", target_model,
-                                 user_message, question, context_text, answer)
+                                 user_message, context_text, answer)
                 response.choices[0].message.content = FALLBACK_TEXT
                 return response
 
-            score = await _score(question, contexts, answer)
+            score = await _score(user_message, contexts, answer)
             if score is None:
                 await _log_event(req_id, attempt, None, "error", target_model,
-                                 user_message, question, context_text, answer)
+                                 user_message, context_text, answer)
                 response.choices[0].message.content = answer
                 return response
             logger.info(f"[faithfulness] req={req_id} attempt={attempt} score={score:.3f}")
@@ -362,6 +360,6 @@ class FaithfulnessGuardrail(CustomGuardrail):
             if score >= threshold:
                 logger.info(f"[faithfulness] req={req_id} PASSED at attempt={attempt} score={score:.3f}")
                 await _log_event(req_id, attempt, score, "passed", target_model,
-                                 user_message, question, context_text, answer)
+                                 user_message, context_text, answer)
                 response.choices[0].message.content = answer
                 return response

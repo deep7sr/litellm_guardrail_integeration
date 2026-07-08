@@ -55,7 +55,7 @@ REASON_SYSTEM_PROMPT = (
 
 
 class FaithfulnessReasoningGuardrail(FaithfulnessGuardrail):
-    async def _failure_reason(self, question: str, contexts: list[str],
+    async def _failure_reason(self, user_message: str, contexts: list[str],
                               answer: str, score: float) -> str | None:
         try:
             resp = await asyncio.wait_for(
@@ -67,7 +67,7 @@ class FaithfulnessReasoningGuardrail(FaithfulnessGuardrail):
                         {"role": "system", "content": REASON_SYSTEM_PROMPT},
                         {"role": "user", "content": (
                             f"Reference context:\n{chr(10).join(contexts)}\n\n"
-                            f"Question: {question}\n\n"
+                            f"Question: {user_message}\n\n"
                             f"Answer being checked:\n{answer}\n\n"
                             f"Faithfulness score: {score:.2f} (below threshold). "
                             "Which claim(s) are unsupported?"

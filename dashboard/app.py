@@ -1,7 +1,7 @@
 """Live dashboard over the faithfulness_events table — shows the raw user
-message, scoring question, retrieved context, generated response, verdict,
-score, and (when the reasoning guardrail is active) the judge's explanation
-for failures, for every guardrail check."""
+message, retrieved context, generated response, verdict, score, and (when
+the reasoning guardrail is active) the judge's explanation for failures,
+for every guardrail check."""
 
 import html
 import os
@@ -44,7 +44,7 @@ PAGE = """<!doctype html>
 <table>
 <tr>
   <th>Time</th><th>Req</th><th>Attempt</th><th>Score</th><th>Verdict</th><th>Model</th>
-  <th>User Message (raw)</th><th>Scoring Question</th><th>Context (retrieved)</th>
+  <th>User Message</th><th>Context (retrieved)</th>
   <th>Generated Response</th><th>Failure Reason (judge)</th>
 </tr>
 {rows}
@@ -65,7 +65,7 @@ async def index():
         )
         events = await conn.fetch(
             "SELECT created_at, req_id, attempt, score, verdict, target_model, "
-            "user_message, question, context_snippet, answer_snippet, reason "
+            "user_message, context_snippet, answer_snippet, reason "
             "FROM faithfulness_events ORDER BY id DESC LIMIT 50"
         )
     stats = " ".join(
@@ -74,13 +74,12 @@ async def index():
     rows = "\n".join(
         "<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td>"
         '<td class="{}">{}</td><td>{}</td>'
-        '<td class="wrap">{}</td><td class="wrap">{}</td><td class="wrap">{}</td>'
+        '<td class="wrap">{}</td><td class="wrap">{}</td>'
         '<td class="wrap">{}</td><td class="wrap">{}</td></tr>'.format(
             r["created_at"].strftime("%H:%M:%S"), esc(r["req_id"]), r["attempt"],
             "-" if r["score"] is None else f'{r["score"]:.3f}',
             r["verdict"], r["verdict"], esc(r["target_model"]),
             esc(r["user_message"])[:300],
-            esc(r["question"])[:300],
             esc(r["context_snippet"])[:400],
             esc(r["answer_snippet"])[:400],
             esc(r["reason"])[:400] or "-",

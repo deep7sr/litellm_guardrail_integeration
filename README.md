@@ -97,8 +97,8 @@ regeneration calls re-enter this same proxy):
 ## Observability
 
 Every attempt is logged to Postgres (`faithfulness_events`): request id,
-attempt number, score, verdict, model, raw user message, scoring question,
-retrieved context, generated answer, and (v2) the judge's failure reason.
+attempt number, score, verdict, model, raw user message, retrieved context,
+generated answer, and (v2) the judge's failure reason.
 The `dashboard/` service renders it live at `:8080`.
 
 Verdicts: `passed` · `blocked` · `retrying` · `exhausted` ·
